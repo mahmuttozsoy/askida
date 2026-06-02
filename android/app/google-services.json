@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "575069058162",
+    "project_id": "askida-8da8b",
+    "storage_bucket": "askida-8da8b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:575069058162:android:caaaf2b8e0dd8b2f50feeb",
+        "android_client_info": {
+          "package_name": "com.example.askida"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwb4Iuu5x_Rx6tSIXZXCktjoo1jMfZKiw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
