@@ -55,4 +55,51 @@ class ApiClient {
 
     return dio;
   }
+
+  static Map<String, dynamic> handleError(DioException e) {
+    if (e.response != null) {
+      var data = e.response?.data;
+      if (data is Map<String, dynamic>) {
+        if (data.containsKey('message') && data['message'] != null && data['message'].toString().isNotEmpty) {
+          return data;
+        }
+        // ASP.NET Validation Errors
+        if (data.containsKey('errors') && data['errors'] is Map) {
+          final errors = data['errors'] as Map;
+          final errorMessages = errors.values
+              .map((err) => err is List ? err.join('\n') : err.toString())
+              .join('\n');
+          if (errorMessages.isNotEmpty) {
+            return {'success': false, 'message': errorMessages};
+          }
+        }
+        if (data.containsKey('title')) {
+          return {'success': false, 'message': data['title']};
+        }
+        return {'success': false, 'message': 'Sunucu hatası (${e.response?.statusCode})'};
+      }
+      return {'success': false, 'message': 'Sunucu geçersiz bir yanıt verdi.'};
+    }
+
+    String message;
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        message = 'Sunucu bağlantısı zaman aşımına uğradı. Lütfen internetinizi kontrol edin.';
+        break;
+      case DioExceptionType.connectionError:
+        message = 'Sunucuya bağlanılamadı. Lütfen internet bağlantınızı kontrol edin.';
+        break;
+      case DioExceptionType.badCertificate:
+        message = 'Güvenli bağlantı kurulamadı (Sertifika hatası).';
+        break;
+      case DioExceptionType.cancel:
+        message = 'İstek iptal edildi.';
+        break;
+      default:
+        message = 'Bir ağ hatası oluştu. Lütfen tekrar deneyin.';
+    }
+    return {'success': false, 'message': message};
+  }
 }

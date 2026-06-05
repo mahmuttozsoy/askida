@@ -104,9 +104,6 @@ class AuthApiService {
   }
 
   Map<String, dynamic> _handleError(DioException e) {
-    if (e.response != null) {
-      return e.response?.data ?? {'success': false, 'message': 'Sunucu hatası'};
-    }
-    return {'success': false, 'message': 'Bağlantı hatası: ${e.message}'};
+    return ApiClient.handleError(e);
   }
 }
