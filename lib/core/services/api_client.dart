@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
   static String get baseHost {
-    return 'http://api.askidagmtid.com';
+    return 'https://api.askidagmtid.com';
   }
   static const String tokenKey = 'auth_token';
 
