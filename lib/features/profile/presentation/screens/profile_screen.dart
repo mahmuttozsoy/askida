@@ -31,7 +31,9 @@ class ProfileScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
+            onPressed: () {
+              context.push('/profile/settings');
+            },
           ),
         ],
       ),

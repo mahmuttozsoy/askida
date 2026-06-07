@@ -6,9 +6,12 @@ import '../../domain/models/ad_model.dart';
 import '../../domain/models/category_model.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
+// AdApiService'i uygulamanın her yerinden erişilebilir kılan Riverpod sağlayıcısı
 final adApiServiceProvider = Provider((ref) => AdApiService());
 
-// Canlı ilan akışı (5 saniyede bir C# backend'den veriyi çeker)
+// Canlı İlan Akışı (Feed) Yöneticisi
+// Riverpod'un StreamProvider yapısını kullanarak her 5 saniyede bir arkaplanda C# Backend'inden en güncel ilanları çeker.
+// Yeni bir ilan eklendiğinde veya biri "Talep Et" dediğinde sayfa yenilemeye gerek kalmadan ekranda anında güncellenmesini sağlar.
 final adsStreamProvider = StreamProvider<List<FoodAd>>((ref) async* {
   final service = ref.watch(adApiServiceProvider);
   while (true) {
@@ -32,6 +35,8 @@ final categoriesProvider = Provider<List<CategoryModel>>((ref) {
   ];
 });
 
+// Feed (Ana Sayfa) İşlemleri Yöneticisi
+// İlan oluşturma, talep etme, onaylama ve reddetme gibi EYLEMLERİN (Actions) tutulduğu sınıftır.
 class FeedNotifier extends Notifier<void> {
   late final AdApiService _service;
 
@@ -70,7 +75,7 @@ class FeedNotifier extends Notifier<void> {
       throw response['message'] ?? 'İlan oluşturulurken hata oluştu';
     }
 
-    // Refresh stream immediately
+    // Yeni ilan oluşturulduğunda, 5 saniyelik zamanlayıcıyı beklemeden listeyi HEMEN yeniler!
     ref.invalidate(adsStreamProvider);
   }
 

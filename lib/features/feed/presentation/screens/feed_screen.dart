@@ -71,11 +71,10 @@ class FeedScreen extends ConsumerWidget {
       ),
       body: adsStream.when(
         data: (ads) {
-          final filteredAds = isStudent
-              ? ads.where((a) => (a.parentId == null || a.parentId!.isEmpty) && a.status == AdStatus.active).toList()
-              : ads
-                    .where((a) => a.creatorId == user?.uid && (a.parentId == null || a.parentId!.isEmpty))
-                    .toList();
+              final filteredAds = ads.where((a) => 
+                  (a.parentId == null || a.parentId!.isEmpty) && 
+                  a.status == AdStatus.active
+              ).toList();
 
           if (filteredAds.isEmpty) {
             return Center(
@@ -91,7 +90,7 @@ class FeedScreen extends ConsumerWidget {
                   Text(
                     isStudent
                         ? 'Şu an açık bir ilan yok.'
-                        : 'Henüz bir ilanınız yok.',
+                        : 'Henüz açık bir ürün/ilan yok.',
                     style: TextStyle(
                       color: Colors.grey.shade600,
                       fontSize: 16,
@@ -115,15 +114,7 @@ class FeedScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Hata: $err')),
       ),
-      floatingActionButton: !isStudent
-          ? FloatingActionButton.extended(
-              onPressed: () => context.push('/create-ad'),
-              icon: const Icon(Icons.add),
-              label: const Text('İlan Oluştur'),
-              backgroundColor: AppTheme.primaryColor,
-              foregroundColor: Colors.white,
-            )
-          : null,
+      floatingActionButton: null,
     );
   }
 }

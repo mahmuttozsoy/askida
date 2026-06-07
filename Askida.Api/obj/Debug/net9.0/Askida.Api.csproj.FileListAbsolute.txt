@@ -128,3 +128,6 @@ E:\projelerim\askida\Askida.Api\obj\Debug\net9.0\refint\Askida.Api.dll
 E:\projelerim\askida\Askida.Api\obj\Debug\net9.0\Askida.Api.pdb
 E:\projelerim\askida\Askida.Api\obj\Debug\net9.0\Askida.Api.genruntimeconfig.cache
 E:\projelerim\askida\Askida.Api\obj\Debug\net9.0\ref\Askida.Api.dll
+E:\projelerim\askida\Askida.Api\obj\Debug\net9.0\Askida.Api.sourcelink.json
+E:\projelerim\askida\Askida.Api\bin\Debug\net9.0\Iyzipay.dll
+E:\projelerim\askida\Askida.Api\bin\Debug\net9.0\Newtonsoft.Json.dll

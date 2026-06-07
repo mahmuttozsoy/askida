@@ -169,3 +169,158 @@ class PrivacyPolicyScreen extends StatelessWidget {
     );
   }
 }
+
+// ==========================================
+// YENİ NESİL AYARLAR VE DURUM YÖNETİMİ (Riverpod v3)
+// ==========================================
+
+// Anlık Bildirim ayarını hafızada tutan sınıf
+class PushNotifsNotifier extends Notifier<bool> {
+  @override
+  bool build() => true;
+  void updateState(bool val) => state = val;
+}
+
+// E-posta Bildirimleri ayarını hafızada tutan sınıf
+class EmailNotifsNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void updateState(bool val) => state = val;
+}
+
+// Uygulama Tema ayarını hafızada tutan sınıf
+class ThemeNotifier extends Notifier<String> {
+  @override
+  String build() => 'Sistem Varsayılanı';
+  void updateState(String val) => state = val;
+}
+
+// Bu sağlayıcılar (Providers), uygulamanın herhangi bir yerinden ayarların durumunu okumak ve güncellemek için kullanılır.
+// StateProvider yerine Riverpod v3 mimarisine uygun olarak NotifierProvider kullanılmıştır.
+final pushNotificationsProvider = NotifierProvider<PushNotifsNotifier, bool>(PushNotifsNotifier.new);
+final emailNotificationsProvider = NotifierProvider<EmailNotifsNotifier, bool>(EmailNotifsNotifier.new);
+final themeProvider = NotifierProvider<ThemeNotifier, String>(ThemeNotifier.new);
+
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pushNotifs = ref.watch(pushNotificationsProvider);
+    final emailNotifs = ref.watch(emailNotificationsProvider);
+    final currentTheme = ref.watch(themeProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Ayarlar')),
+      body: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          const Text('Bildirimler', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+          const SizedBox(height: 16),
+          SwitchListTile(
+            title: const Text('Anlık Bildirimler'),
+            subtitle: const Text('Yeni ilan eklendiğinde haber ver'),
+            value: pushNotifs,
+            activeColor: AppTheme.primaryColor,
+            onChanged: (val) {
+              ref.read(pushNotificationsProvider.notifier).updateState(val);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('E-posta Bildirimleri'),
+            subtitle: const Text('Önemli güncellemeleri e-posta ile al'),
+            value: emailNotifs,
+            activeColor: AppTheme.primaryColor,
+            onChanged: (val) {
+              ref.read(emailNotificationsProvider.notifier).updateState(val);
+            },
+          ),
+          const Divider(height: 32),
+          const Text('Görünüm', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+          const SizedBox(height: 16),
+          ListTile(
+            leading: const Icon(Icons.dark_mode_outlined),
+            title: const Text('Tema'),
+            trailing: Text(currentTheme, style: const TextStyle(color: Colors.grey)),
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          title: const Text('Sistem Varsayılanı'),
+                          onTap: () {
+                            ref.read(themeProvider.notifier).updateState('Sistem Varsayılanı');
+                            Navigator.pop(context);
+                          },
+                        ),
+                        ListTile(
+                          title: const Text('Açık Tema'),
+                          onTap: () {
+                            ref.read(themeProvider.notifier).updateState('Açık Tema');
+                            Navigator.pop(context);
+                          },
+                        ),
+                        ListTile(
+                          title: const Text('Koyu Tema'),
+                          onTap: () {
+                            ref.read(themeProvider.notifier).updateState('Koyu Tema');
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          const Divider(height: 32),
+          const Text('Hesap', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+          const SizedBox(height: 16),
+          ListTile(
+            leading: const Icon(Icons.lock_outline),
+            title: const Text('Şifre Değiştir'),
+            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.')),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete_outline, color: Colors.red),
+            title: const Text('Hesabı Sil', style: TextStyle(color: Colors.red)),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Hesabı Sil'),
+                  content: const Text('Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('İptal'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Hesabınız başarıyla silindi.')),
+                        );
+                      },
+                      child: const Text('Sil', style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}

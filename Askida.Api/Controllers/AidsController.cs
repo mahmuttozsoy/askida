@@ -8,6 +8,11 @@ using System;
 
 namespace Askida.Api.Controllers
 {
+    /// <summary>
+    /// Sistemin ANA kalbi olan Aids (İlanlar/Yardımlar) Yöneticisi.
+    /// Öğrenciler ve işletmeler arasındaki tüm askıda yemek, eşya vb. yardımlaşma işlemleri buradan yönetilir.
+    /// Yeni mimaride her türlü "ürün", "bağış" ve "talep" ortak olarak bu controller altından "Aid" modeliyle işlenir.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class AidsController : ControllerBase
@@ -28,6 +33,7 @@ namespace Askida.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+            // Veritabanındaki (PostgreSQL) tüm aktif ilanları/yardımları çeker. Feed (Ana sayfa) ekranını besler.
             return Ok(await _aidRepository.GetAllAsync());
         }
 
@@ -54,6 +60,7 @@ namespace Askida.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateAidDto dto)
         {
+            // Yeni bir ilan eklendiğinde çalışır (İşletmeler veya destekçiler tarafından kullanılır)
             var aid = new Aid
             {
                 Title = dto.Title,
@@ -62,9 +69,9 @@ namespace Askida.Api.Controllers
                 CreatorId = string.IsNullOrEmpty(dto.CreatorId) ? "mock-supporter-id" : dto.CreatorId,
                 Price = dto.Price,
                 Location = dto.Location,
-                Status = "Available",
-                Quantity = dto.Quantity > 0 ? dto.Quantity : 1,
-                RemainingQuantity = dto.Quantity > 0 ? dto.Quantity : 1
+                Status = "Available", // İlanın durumunu başlangıçta 'Müsait' yapar.
+                Quantity = dto.Quantity > 0 ? dto.Quantity : 1, // Toplam miktar
+                RemainingQuantity = dto.Quantity > 0 ? dto.Quantity : 1 // Kalan/Kullanılabilir miktar
             };
             
             var createdAid = await _aidRepository.AddAsync(aid);
@@ -74,21 +81,22 @@ namespace Askida.Api.Controllers
         [HttpPost("{id}/claim")]
         public async Task<IActionResult> Claim(string id, [FromQuery] string claimerId)
         {
+            // Öğrenci "Bağış İste" butonuna bastığında bu metot tetiklenir.
             var aid = await _aidRepository.GetByIdAsync(id);
             if (aid == null) return NotFound();
             if (aid.Status != "Available" || aid.RemainingQuantity <= 0) return BadRequest("Aid is no longer available.");
 
             string finalClaimerId = string.IsNullOrEmpty(claimerId) ? "mock-student-id" : claimerId;
 
-            // If it's a single-person aid, claim it directly
+            // Eğer ilan tek kişilik bir yemek/eşya ise (Quantity == 1)
             if (aid.Quantity == 1)
             {
-                aid.Status = "Claimed";
+                aid.Status = "Claimed"; // Durumunu 'Talep Edildi' (Onay Bekliyor) yapar.
                 aid.ClaimerId = finalClaimerId;
                 aid.RemainingQuantity = 0;
                 await _aidRepository.UpdateAsync(aid);
 
-                // Add claim notification
+                // İşletmeye/Destekçiye öğrencinin talebi için bildirim (DB, Push, WhatsApp) gönderilir.
                 var creatorNotification = new Notification
                 {
                     UserId = aid.CreatorId,
@@ -102,7 +110,7 @@ namespace Askida.Api.Controllers
             }
             else
             {
-                // Multi-person aid: decrement remaining quantity
+                // Çoklu Miktar (Örn: "10 Lahmacun" ilanı) ise, mevcut ilandan 1 miktar düşülür.
                 aid.RemainingQuantity -= 1;
                 if (aid.RemainingQuantity == 0)
                 {
@@ -110,7 +118,8 @@ namespace Askida.Api.Controllers
                 }
                 await _aidRepository.UpdateAsync(aid);
 
-                // Create a sub-aid portion for this student's claim
+                // Sadece o öğrenciye özel 'alt/kopya' bir ilan (Portion Aid) oluşturulur.
+                // ParentId = Ana İlan ID'si olur ki sonradan reddedilirse ana ilanın stoğuna geri eklenebilsin.
                 var portionAid = new Aid
                 {
                     Title = aid.Title,
@@ -128,7 +137,7 @@ namespace Askida.Api.Controllers
 
                 var createdPortion = await _aidRepository.AddAsync(portionAid);
 
-                // Add claim notification for creator
+                // İlgi bildirimler işletmeye gönderilir
                 var creatorNotification = new Notification
                 {
                     UserId = aid.CreatorId,

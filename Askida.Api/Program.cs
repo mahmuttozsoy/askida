@@ -13,6 +13,8 @@ using Microsoft.IdentityModel.Tokens;
 
 using Askida.Api.Infrastructure.Cache;
 
+// C# (ASP.NET Core) uygulamasının ANA GİRİŞ NOKTASI.
+// Sunucu çalışmaya başladığında ilk bu dosya okunur. Servisler, bağımlılıklar (Dependency Injection) ve Middleware'ler burada ayarlanır.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -33,21 +35,26 @@ builder.Services.Configure<WhatsAppSettings>(builder.Configuration.GetSection("W
 var usePostgreSql = builder.Configuration.GetValue("Infrastructure:UsePostgreSql", false);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+// UYGULAMA YAPILANDIRMASI (DI - Dependency Injection)
+// Veritabanı seçimi yapılır: Eğer UsePostgreSql aktifse ve şifre girilmişse Gerçek Veritabanı (PostgreSQL) kullanılır.
 if (usePostgreSql && !string.IsNullOrWhiteSpace(connectionString))
 {
     builder.Services.AddDbContext<AskidaDbContext>(options =>
         options.UseNpgsql(connectionString));
     builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+    builder.Services.AddScoped<IAidRepository, EfAidRepository>();
+}
 }
 else
 {
+    // Aksi halde verileri RAM'de tutan veya sahte JSON okuyan geçici test veritabanları (FakeRepository) kullanılır.
     builder.Services.AddSingleton<IUserRepository, FakeUserRepository>();
+    builder.Services.AddSingleton<IAidRepository, FakeAidRepository>();
 }
 
 builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 builder.Services.AddSingleton<IOTPService, OTPService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
-builder.Services.AddSingleton<IAidRepository, FakeAidRepository>();
 builder.Services.AddSingleton<INotificationRepository, FakeNotificationRepository>();
 builder.Services.AddSingleton<IWhatsAppService, WhatsAppBusinessService>();
 builder.Services.AddSingleton<IOtpRateLimitService>(sp => new RedisOtpRateLimitService(null, sp.GetRequiredService<IConfiguration>()));
@@ -73,6 +80,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// EĞER POSTGRESQL KULLANILIYORSA, uygulama başlarken tabloların otomatik olarak oluşturulmasını sağlar.
 if (usePostgreSql && !string.IsNullOrWhiteSpace(connectionString))
 {
     using var scope = app.Services.CreateScope();

@@ -1,202 +1,59 @@
-Sen kıdemli bir Flutter ve C# ASP.NET Core geliştiricisisin.
+# Askıda (Bandırma) Projesi
 
-“Askıda” isimli sosyal yardımlaşma uygulamasını geliştireceğiz.
+Bu proje; ihtiyaç sahipleri (öğrenciler) ile hayırseverleri ve işletmeleri buluşturan, askıda yemek/ürün/yardım mantığıyla çalışan modern bir yardımlaşma platformudur.
 
-Teknoloji planı:
+## 🛠️ Teknoloji Yığını (Tech Stack)
 
-Frontend:
+### 1. Backend (C# ASP.NET Core 9.0)
+* **Konum:** `/Askida.Api`
+* **Veritabanı:** PostgreSQL (Entity Framework Core üzerinden yönetiliyor).
+* **Mimari:** Dependency Injection tabanlı, Repository pattern kullanılan modüler yapı.
+  * *EfAidRepository:* İlanların/Yardımların (Aids) PostgreSQL veritabanına kaydedilmesini ve okunmasını sağlar.
+* **Kimlik Doğrulama:** JWT (JSON Web Token).
+* **Bildirimler:** E-posta (SMTP) ve WhatsApp (Twilio entegrasyonu) destekli OTP/Doğrulama sistemleri.
+* **Sunucu & Deployment:** Docker ve `docker-compose` kullanılarak Ubuntu VPS'te (IP: 195.35.56.82) barındırılıyor. Deploy işlemi `deploy_docker_api.py` scripti üzerinden otomatikleştirildi.
+* **Geriye Dönük Uyumluluk:** Yeni sistemde her şey `Aid` (İlan/Yardım) modeli üzerinden çalışır. Ancak Admin Panelinin eski API uçlarına (`/products`, `/donations`, `/requests`) yaptığı isteklerin çökmemesi için bu Controller'lar arkaplanda `IAidRepository`'e yönlendirilecek şekilde sisteme entegre edildi.
 
-* Flutter
-* Material 3
-* Riverpod
-* Go Router
-* Clean Architecture
+### 2. Mobil Uygulama (Flutter)
+* **Konum:** `/lib`
+* **Durum Yönetimi (State Management):** Riverpod v3 (Yeni nesil `Notifier` ve `NotifierProvider` mimarisi).
+* **Yönlendirme (Routing):** `go_router` paketi.
+* **Ağ İstekleri:** `dio` paketi ile API haberleşmesi (örn. `ad_api_service.dart`).
+* **Öne Çıkan Modüller:**
+  * **Auth:** Giriş, Kayıt, Rol Seçimi (Öğrenci, İşletme, Destekçi).
+  * **Profil:** Hesap detayları, Öğrenci doğrulama (belge yükleme), Geçmiş işlemler.
+  * **Feed (İlanlar):** Aktif askıda ürünlerinin/ilanların listelendiği, filtrelendiği ekran.
+  * **Ayarlar:** Tema (Light/Dark/Sistem), Anlık/E-posta bildirimleri ve Hesap yönetimi (Şifre değiştir, hesabı sil).
 
-Backend:
-
-* C# ASP.NET Core Web API
-* Katmanlı mimari
-* JWT Authentication altyapısına hazır yapı
-* REST API
-* DTO, Service, Repository yapısı
-
-Veritabanı:
-
-* Şimdilik Firebase bağlantısı yapılmayacak
-* Firebase entegrasyonu daha sonra eklenecek
-* İlk aşamada mock data / fake repository kullanılacak
-
-Öncelik:
-Önce Flutter arayüzünü ve C# backend temel mimarisini kur.
-
-Uygulama adı: Askıda
-
-Amaç:
-Öğrencilerin yemek, barınma, kırtasiye, ulaşım, sağlık, giyim, eğitim ve teknoloji gibi ihtiyaçlarının bireysel destekçiler veya işletmeler tarafından karşılanmasını sağlayan bir platform.
-
-Kullanıcı rolleri:
-
-1. Öğrenci
-2. Bireysel Destekçi
-3. İşletme
-4. Admin
-
-İlk aşamada Flutter’da şu ekranları oluştur:
-
-1. Splash Screen
-2. Onboarding Screen
-3. Login Screen
-4. Register Screen
-5. Role Selection Screen
-6. Student Home Screen
-7. Supporter Home Screen
-8. Business Home Screen
-9. Aid Categories Screen
-10. Aid Detail Screen
-11. Create Aid Request Screen
-12. Profile Screen
-13. Settings Screen
-
-Flutter tarafında:
-
-* Modern ve temiz tasarım yap
-* Responsive yapı kur
-* Tüm renkleri app_theme.dart içinde tut
-* Tüm route’ları app_router.dart içinde yönet
-* Ortak widget’lar oluştur
-* Hardcoded karmaşık yapıdan kaçın
-* Firebase kodu yazma
-* API bağlantısı için service katmanı hazırla ama şimdilik mock data kullan
-
-C# backend tarafında şu yapıyı kur:
-
-Askida.Api
-
-* Controllers
-* Models
-* DTOs
-* Services
-* Repositories
-* Interfaces
-* Middleware
-* Helpers
-
-İlk API endpointleri:
-
-Auth:
-
-* POST /api/auth/register
-* POST /api/auth/login
-
-Users:
-
-* GET /api/users
-* GET /api/users/{id}
-* PUT /api/users/{id}
-
-Aid:
-
-* GET /api/aids
-* GET /api/aids/{id}
-* POST /api/aids
-* PUT /api/aids/{id}
-* DELETE /api/aids/{id}
-
-Categories:
-
-* GET /api/categories
-
-Backend şimdilik:
-
-* In-memory fake data kullansın
-* Firebase bağlantısı olmasın
-* Entity modelleri Firebase’e uygun olacak şekilde tasarlansın
-* Daha sonra Firestore repository eklenebilecek şekilde soyutlama yapılsın
-
-Bana önce şu çıktıları ver:
-
-1. Flutter proje klasör yapısı
-2. C# backend klasör yapısı
-3. Flutter ana tema dosyası
-4. Flutter route yapısı
-5. İlk 5 Flutter ekranının kodu
-6. C# Program.cs
-7. İlk controller örnekleri
-8. Model ve DTO örnekleri
-9. Fake repository yapısı
-
-Kodları parça parça değil, düzenli başlıklarla ver.
-Önce arayüz ve backend iskeletini kur.
-Firebase bağlantısını şimdilik ekleme.
+### 3. Yönetim Paneli (Web Admin Panel)
+* **Konum:** `/askida-admin-web`
+* Ürünlerin, ilanların ve öğrencilerin doğrulanma süreçlerinin yönetildiği arayüz.
+* Daha önce bağımsız bir JSON sunucusuna istek atarken, son güncellemelerle doğrudan C# sunucusundaki PostgreSQL veritabanına entegre edilmiştir.
 
 ---
 
-## Uygulama Planı
+## 🚀 Bugüne Kadar Yapılan Geliştirmeler (Kısa Özet)
 
-Bu bölüm, yukarıdaki isterler doğrultusunda "Askıda" uygulaması için Flutter frontend ve C# ASP.NET Core backend iskeletinin adım adım kurulum planını içermektedir.
+1. **Sunucu & Veritabanı Entegrasyonu:** 
+   * C# tarafında test amaçlı kullanılan sahte veritabanı (JSON) devre dışı bırakıldı ve **Gerçek PostgreSQL Veritabanı** entegrasyonu sağlandı (`EfAidRepository`). 
+   * Hem Flutter mobil uygulamasının hem de Web Admin Panelinin aynı veritabanından veri okuması/yazması sağlandı. 
+2. **API Uyumluluğu:** 
+   * Flutter uygulaması modernize edilerek doğrudan `/aids` endpointlerine bağlandı.
+   * Admin panelinin kodlarının bozulmaması için C# tarafında `/products`, `/donations` ve `/requests` endpointleri geriye dönük uyumlu olarak ayağa kaldırıldı.
+3. **Flutter UI/UX Geliştirmeleri:**
+   * Profil sayfasındaki **Ayarlar** menüsü tamamen işlevsel hale getirildi. 
+   * Riverpod v3 uyumluluğu gözetilerek `Notifier` sınıfları üzerinden Tema değişimi, bildirim tercihleri ve hesap silme/şifre değiştirme diyalogları kodlandı.
+4. **Hızlı Deployment:** 
+   * C# API güncellemeleri, Python scripti kullanılarak Docker imajları halinde saniyeler içinde VPS sunucusuna başarıyla deploy edildi.
+5. **Kod Dokümantasyonu:**
+   * Projenin "beyni" olan en kritik C# (AidsController, EfAidRepository, Program) ve Flutter (ad_api_service, feed_provider, profile_sub_pages) dosyalarına detaylı Türkçe iş mantığı yorumları eklendi.
 
-### 1. Flutter Proje Klasör Yapısı (Clean Architecture)
+---
 
-Flutter tarafında Riverpod ve Go Router kullanılarak aşağıdaki `lib/` yapısı kurulacaktır:
+## 🎯 Yarınki (Sonraki) Hedeflerimiz
+* (Buraya bir sonraki çalışma oturumumuzda eklemek/düzeltmek istediğiniz özellikleri ekleyebilirsiniz.)
+* Sistem genelinde testlerin yapılması,
+* Bildirim izinlerinin ve Push Notification altyapısının (Firebase) tam olarak test edilmesi,
+* Öğrenci onay (Verification) süreçlerinin Admin panelinden tamamen yönetilebilirliğinin teyit edilmesi.
 
-```text
-lib/
-├── core/
-│   ├── constants/ (renkler, stringler vb.)
-│   ├── theme/ (app_theme.dart)
-│   ├── routing/ (app_router.dart)
-│   └── error/
-├── features/
-│   ├── auth/
-│   │   ├── domain/ (modeller, repository arayüzleri)
-│   │   ├── data/ (mock repository implementasyonu)
-│   │   └── presentation/
-│   │       ├── screens/ (Splash, Onboarding, Login, Register, RoleSelection)
-│   │       └── widgets/
-│   ├── home/
-│   └── aid/
-├── shared/
-│   └── widgets/ (ortak butonlar, textfield'lar vb.)
-└── main.dart
-```
-
-### 2. C# Backend Klasör Yapısı (Katmanlı Mimari)
-
-C# ASP.NET Core Web API projesi, Flutter projesiyle aynı kök dizinde ayrı bir klasör (`e:\projelerim\Askida.Api`) olarak aşağıdaki katmanlı yapıya sahip olacaktır:
-
-```text
-Askida.Api/
-├── Controllers/ (AuthController, UsersController, AidsController, CategoriesController)
-├── Core/
-│   ├── Entities/ (User, Aid, Category - Firebase'e uygun Id tipleri ile)
-│   └── Interfaces/ (IAidRepository, IUserRepository vb.)
-├── Infrastructure/
-│   └── Data/ (Mock veri depoları, FakeRepository implementasyonları)
-├── Application/
-│   ├── DTOs/ (UserDto, CreateAidDto vb.)
-│   └── Services/ (AuthService, AidService vb.)
-├── Program.cs
-└── appsettings.json
-```
-
-### 3. Flutter Tema ve Route Kurulumu
-
-- **`app_theme.dart`**: Material 3 standartlarında, projeye özel renk paletiyle (modern ve temiz) hazırlanmış tema dosyası oluşturulacak.
-- **`app_router.dart`**: Go Router kullanılarak uygulamanın navigasyon altyapısı kurulacak.
-
-### 4. Flutter İlk 5 Ekranının Kodlanması
-
-`features/auth/presentation/screens/` altında şu ekranlar oluşturulacaktır (Mock bağlantılarıyla):
-1. **Splash Screen**: Uygulama açılış ekranı.
-2. **Onboarding Screen**: Uygulamanın amacını anlatan tanıtım ekranı.
-3. **Login Screen**: Giriş ekranı.
-4. **Register Screen**: Kayıt ekranı.
-5. **Role Selection Screen**: Kayıt sonrası (Öğrenci, Destekçi, İşletme) rol seçimi ekranı.
-
-### 5. C# Backend İskeletinin Kurulumu
-
-Belirlenen dizinde:
-- **`Program.cs`**: Controller tabanlı API başlangıç noktası (DI konteyneri yapılandırması dahil).
-- **Modeller ve DTO'lar**: `User`, `Aid` gibi temel varlıklar ve veri taşıma objeleri.
-- **Fake Repository**: Interface tabanlı, In-memory liste kullanan veri erişim katmanı.
-- **Controller Örnekleri**: RESTful prensiplere uygun uç noktalar.
+> **Not (AI için):** Bu dosya, projeye yeniden başlandığında bağlamın (context) hızlıca hatırlanması için özenle oluşturulmuştur. Yeni özellikler eklendikçe bu dosya güncellenecektir.

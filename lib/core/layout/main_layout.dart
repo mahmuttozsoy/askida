@@ -27,7 +27,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
 
     final screens = [
       FeedScreen(isStudent: isStudent),
-      RequestsScreen(isStudent: isStudent),
+      if (isStudent) RequestsScreen(isStudent: isStudent),
       const ProfileScreen(),
     ];
 
@@ -62,18 +62,19 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
               showSelectedLabels: true,
               showUnselectedLabels: true,
               type: BottomNavigationBarType.fixed,
-              items: const [
-                BottomNavigationBarItem(
+              items: [
+                const BottomNavigationBarItem(
                   icon: Icon(Icons.explore_outlined),
                   activeIcon: Icon(Icons.explore),
                   label: 'İlanlar',
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.receipt_long_outlined),
-                  activeIcon: Icon(Icons.receipt_long),
-                  label: 'Talepler',
-                ),
-                BottomNavigationBarItem(
+                if (isStudent)
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.receipt_long_outlined),
+                    activeIcon: Icon(Icons.receipt_long),
+                    label: 'Talepler',
+                  ),
+                const BottomNavigationBarItem(
                   icon: Icon(Icons.person_outline),
                   activeIcon: Icon(Icons.person),
                   label: 'Profil',
