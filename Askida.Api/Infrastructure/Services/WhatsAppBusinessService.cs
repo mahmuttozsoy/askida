@@ -50,7 +50,10 @@ public class WhatsAppBusinessService : IWhatsAppService
             var json = JsonSerializer.Serialize(payload);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync("http://localhost:3000/send", content);
+            var gatewayUrl = !string.IsNullOrEmpty(_settings.GatewayUrl) ? _settings.GatewayUrl : "http://195.35.56.82:3000";
+            var requestUrl = gatewayUrl.TrimEnd('/') + "/send";
+
+            var response = await client.PostAsync(requestUrl, content);
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();

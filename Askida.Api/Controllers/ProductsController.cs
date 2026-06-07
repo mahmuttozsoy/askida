@@ -29,9 +29,31 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateAidDto dto)
+    public async Task<IActionResult> Create([FromForm] CreateAidDto dto)
     {
         // Admin panelinden "Yeni Ürün Ekle" butonuna basıldığında çalışır.
+        
+        string? imageUrl = null;
+        if (dto.Image != null && dto.Image.Length > 0)
+        {
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "products");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+            
+            var uniqueFileName = Guid.NewGuid().ToString() + "_" + dto.Image.FileName;
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await dto.Image.CopyToAsync(fileStream);
+            }
+            
+            // Assuming base URL is mapped in app or relative path is sufficient for flutter
+            imageUrl = $"/uploads/products/{uniqueFileName}";
+        }
+
         // Gelen ürün bilgisini yeni mimarideki "Aid" (Yardım/İlan) modeline dönüştürüp PostgreSQL'e kaydeder.
         var aid = new Aid
         {
@@ -43,7 +65,8 @@ public class ProductsController : ControllerBase
             Location = dto.Location,
             Status = "Available",
             Quantity = dto.Quantity > 0 ? dto.Quantity : 1,
-            RemainingQuantity = dto.Quantity > 0 ? dto.Quantity : 1
+            RemainingQuantity = dto.Quantity > 0 ? dto.Quantity : 1,
+            ImageUrl = imageUrl
         };
         
         var createdAid = await _aidRepository.AddAsync(aid);

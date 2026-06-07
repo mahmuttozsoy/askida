@@ -16,6 +16,13 @@ public class DonationsController : ControllerBase
         _aidRepository = aidRepository;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        // Admin panelinin çökmemesi için geriye dönük uyumluluk
+        return Ok(await _aidRepository.GetAllAsync());
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateAidDto dto)
     {

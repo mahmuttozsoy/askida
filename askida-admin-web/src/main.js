@@ -244,6 +244,58 @@ async function handleDeleteUser(userId) {
   }
 }
 
+// Add Product Action
+async function handleAddProduct(e) {
+  e.preventDefault();
+  const submitBtn = document.getElementById('btn-submit-product');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yükleniyor...';
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('Title', document.getElementById('prod-title').value);
+    formData.append('Description', document.getElementById('prod-desc').value);
+    formData.append('CategoryId', document.getElementById('prod-category').value);
+    formData.append('Price', document.getElementById('prod-price').value);
+    formData.append('Location', document.getElementById('prod-location').value);
+    formData.append('Quantity', document.getElementById('prod-quantity').value);
+    
+    formData.append('CreatorId', state.adminUser?.id || 'mock-supporter-id');
+
+    const fileInput = document.getElementById('prod-image');
+    if (fileInput.files.length > 0) {
+      formData.append('Image', fileInput.files[0]);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/products`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error('Ürün eklenirken bir hata oluştu.');
+    }
+
+    showToast('Ürün başarıyla eklendi!', 'success');
+    
+    // Reset Form
+    document.getElementById('add-product-form').reset();
+    document.getElementById('upload-content').style.display = 'flex';
+    document.getElementById('prod-image-preview').style.display = 'none';
+    document.getElementById('btn-remove-image').style.display = 'none';
+    
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-check"></i> İlanı Yayınla';
+    }
+  }
+}
+
 // Main Render Function
 function renderApp() {
   if (!state.isAuthenticated) {
@@ -333,6 +385,10 @@ function renderApp() {
             <i class="fas fa-hand-holding-heart"></i>
             <span>İşletme & Destekçiler</span>
           </li>
+          <li class="menu-item ${state.activeTab === 'add_product' ? 'active' : ''}" id="tab-add-product">
+            <i class="fas fa-plus-circle"></i>
+            <span>Ürün / İlan Ekle</span>
+          </li>
         </ul>
         
         <div class="sidebar-footer">
@@ -396,13 +452,95 @@ function renderApp() {
         
         <!-- Main Content Panel -->
         <section class="content-panel glass-panel">
-          <div class="panel-header">
-            <h3 class="panel-title">${state.activeTab === 'pending' ? 'Onay Bekleyen Başvurular' : (state.activeTab === 'students' ? 'Tüm Öğrenci Listesi' : 'İşletme & Destekçi Ortaklarımız')}</h3>
-            <div class="search-box">
-              <i class="fas fa-search"></i>
-              <input type="text" id="search-input" placeholder="Öğrenci adı veya e-posta..." value="${state.searchQuery}">
+          ${state.activeTab === 'add_product' ? `
+            <div class="panel-header">
+              <h3 class="panel-title">Yeni Ürün / İlan Ekle</h3>
             </div>
-          </div>
+            <div class="add-product-container">
+              <form id="add-product-form" class="product-form">
+                <div class="form-row">
+                  <div class="form-group half">
+                    <label for="prod-title">BAŞLIK / İLAN ADI</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-heading"></i>
+                      <input type="text" id="prod-title" class="input-control" placeholder="Örn: 2 Kişilik Karışık Izgara" required>
+                    </div>
+                  </div>
+                  <div class="form-group half">
+                    <label for="prod-category">KATEGORİ</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-list"></i>
+                      <select id="prod-category" class="input-control" required>
+                        <option value="cat-yemek">Yemek / Gıda</option>
+                        <option value="cat-barinma">Barınma / Ev</option>
+                        <option value="cat-kirtasiye">Kırtasiye / Eğitim</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="prod-desc">AÇIKLAMA</label>
+                  <div class="input-wrapper textarea-wrapper">
+                    <i class="fas fa-align-left" style="align-self: flex-start; margin-top: 15px;"></i>
+                    <textarea id="prod-desc" class="input-control" rows="3" placeholder="Ürün veya yardımın detayları..." required></textarea>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group half">
+                    <label for="prod-price">PİYASA DEĞERİ (₺)</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-lira-sign"></i>
+                      <input type="number" id="prod-price" class="input-control" placeholder="0.00" step="0.01" min="0" required>
+                    </div>
+                  </div>
+                  <div class="form-group half">
+                    <label for="prod-quantity">MİKTAR / KİŞİ SAYISI</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-hashtag"></i>
+                      <input type="number" id="prod-quantity" class="input-control" placeholder="1" min="1" value="1" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="prod-location">KONUM (İsteğe Bağlı)</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <input type="text" id="prod-location" class="input-control" placeholder="Örn: Bandırma Merkez">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>ÜRÜN GÖRSELİ</label>
+                  <div class="file-upload-zone" id="prod-image-zone">
+                    <input type="file" id="prod-image" accept="image/*" style="display: none;">
+                    <div class="upload-content" id="upload-content">
+                      <i class="fas fa-cloud-upload-alt"></i>
+                      <p>Görsel Seçin veya Sürükleyin</p>
+                      <span class="upload-hint">Sadece JPG, PNG formatları</span>
+                    </div>
+                    <img id="prod-image-preview" class="upload-preview" src="" alt="Önizleme" style="display: none;">
+                    <button type="button" class="btn-remove-image" id="btn-remove-image" style="display: none;">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" id="btn-submit-product" class="btn-glowing" style="margin-top: 20px; width: 100%;">
+                  <i class="fas fa-check"></i> İlanı Yayınla
+                </button>
+              </form>
+            </div>
+          ` : `
+            <div class="panel-header">
+              <h3 class="panel-title">${state.activeTab === 'pending' ? 'Onay Bekleyen Başvurular' : (state.activeTab === 'students' ? 'Tüm Öğrenci Listesi' : 'İşletme & Destekçi Ortaklarımız')}</h3>
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Öğrenci adı veya e-posta..." value="${state.searchQuery}">
+              </div>
+            </div>
           
           ${state.isListLoading ? `
             <div class="empty-state">
@@ -479,6 +617,7 @@ function renderApp() {
                 </div>
               `).join('')}
             </div>
+          `}
           `}
         </section>
       </main>
@@ -701,6 +840,58 @@ function attachDashboardEvents() {
     });
   }
   
+  const tabAddProduct = document.getElementById('tab-add-product');
+  if (tabAddProduct) {
+    tabAddProduct.addEventListener('click', () => {
+      state.activeTab = 'add_product';
+      renderApp();
+    });
+  }
+
+  // Add Product Form Events
+  if (state.activeTab === 'add_product') {
+    const addProductForm = document.getElementById('add-product-form');
+    if (addProductForm) {
+      addProductForm.addEventListener('submit', handleAddProduct);
+    }
+
+    const imageZone = document.getElementById('prod-image-zone');
+    const imageInput = document.getElementById('prod-image');
+    const imagePreview = document.getElementById('prod-image-preview');
+    const uploadContent = document.getElementById('upload-content');
+    const removeBtn = document.getElementById('btn-remove-image');
+
+    if (imageZone && imageInput) {
+      imageZone.addEventListener('click', (e) => {
+        if (e.target.id !== 'btn-remove-image' && e.target.closest('#btn-remove-image') == null) {
+          imageInput.click();
+        }
+      });
+
+      imageInput.addEventListener('change', () => {
+        if (imageInput.files && imageInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+            uploadContent.style.display = 'none';
+            removeBtn.style.display = 'flex';
+          };
+          reader.readAsDataURL(imageInput.files[0]);
+        }
+      });
+
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        imageInput.value = '';
+        imagePreview.src = '';
+        imagePreview.style.display = 'none';
+        uploadContent.style.display = 'flex';
+        removeBtn.style.display = 'none';
+      });
+    }
+  }
+
   // Search box
   const searchInput = document.getElementById('search-input');
   if (searchInput) {

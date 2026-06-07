@@ -95,7 +95,7 @@ class FoodAd {
       description: json['description'] ?? '',
       category: cat,
       price: (json['price'] ?? 0.0).toDouble(),
-      location: json['location'] ?? 'Merkez',
+      location: json['location']?.toString() ?? '',
       status: statusVal,
       quantity: json['quantity'] ?? 1,
       remainingQuantity: json['remainingQuantity'] ?? 1,

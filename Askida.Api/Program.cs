@@ -44,7 +44,6 @@ if (usePostgreSql && !string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddScoped<IUserRepository, EfUserRepository>();
     builder.Services.AddScoped<IAidRepository, EfAidRepository>();
 }
-}
 else
 {
     // Aksi halde verileri RAM'de tutan veya sahte JSON okuyan geçici test veritabanları (FakeRepository) kullanılır.

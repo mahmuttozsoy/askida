@@ -93,9 +93,12 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                         color: Colors.grey,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        widget.ad.location,
-                        style: const TextStyle(color: Colors.grey),
+                      Expanded(
+                        child: Text(
+                          widget.ad.location.isNotEmpty ? widget.ad.location : 'Belirtilmedi',
+                          style: const TextStyle(fontSize: 16),
+                          overflow: TextOverflow.visible,
+                        ),
                       ),
                     ],
                   ),

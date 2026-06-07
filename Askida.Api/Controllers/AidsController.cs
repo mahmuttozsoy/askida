@@ -84,71 +84,42 @@ namespace Askida.Api.Controllers
             // Öğrenci "Bağış İste" butonuna bastığında bu metot tetiklenir.
             var aid = await _aidRepository.GetByIdAsync(id);
             if (aid == null) return NotFound();
-            if (aid.Status != "Available" || aid.RemainingQuantity <= 0) return BadRequest("Aid is no longer available.");
 
+            // Kullanıcı mantığı: Menüdeki ürünler tükenmiş olsa bile (RemainingQuantity <= 0) talep edilebilir.
+            // Onay işlemi admin panelinden yapılacaktır. Ana ilan (menü ögesi) hep "Available" kalmalı.
+            
             string finalClaimerId = string.IsNullOrEmpty(claimerId) ? "mock-student-id" : claimerId;
 
-            // Eğer ilan tek kişilik bir yemek/eşya ise (Quantity == 1)
-            if (aid.Quantity == 1)
+            // Sadece o öğrenciye özel 'alt/kopya' bir ilan (Talep) oluşturulur.
+            // Ana ilanın stoğu veya statüsü değişmez.
+            var portionAid = new Aid
             {
-                aid.Status = "Claimed"; // Durumunu 'Talep Edildi' (Onay Bekliyor) yapar.
-                aid.ClaimerId = finalClaimerId;
-                aid.RemainingQuantity = 0;
-                await _aidRepository.UpdateAsync(aid);
+                Title = aid.Title,
+                Description = aid.Description,
+                CategoryId = aid.CategoryId,
+                CreatorId = aid.CreatorId,
+                ClaimerId = finalClaimerId,
+                Price = aid.Price,
+                Location = aid.Location,
+                Status = "Claimed", // Admin panelinde Pending görünecek
+                Quantity = 1,
+                RemainingQuantity = 0,
+                ParentId = aid.Id
+            };
 
-                // İşletmeye/Destekçiye öğrencinin talebi için bildirim (DB, Push, WhatsApp) gönderilir.
-                var creatorNotification = new Notification
-                {
-                    UserId = aid.CreatorId,
-                    Title = "Yeni İlan Talebi 🍽️",
-                    Message = $"'{aid.Title}' ilanınız bir öğrenci tarafından talep edildi. Onaylamak için lütfen kontrol edin."
-                };
-                await _notificationRepository.AddAsync(creatorNotification);
-                await SendPushAndWhatsAppNotifications(aid.CreatorId, creatorNotification.Title, creatorNotification.Message);
+            var createdPortion = await _aidRepository.AddAsync(portionAid);
 
-                return Ok(aid);
-            }
-            else
+            // İşletmeye/Destekçiye öğrencinin talebi için bildirim (DB, Push, WhatsApp) gönderilir.
+            var creatorNotification = new Notification
             {
-                // Çoklu Miktar (Örn: "10 Lahmacun" ilanı) ise, mevcut ilandan 1 miktar düşülür.
-                aid.RemainingQuantity -= 1;
-                if (aid.RemainingQuantity == 0)
-                {
-                    aid.Status = "Claimed";
-                }
-                await _aidRepository.UpdateAsync(aid);
+                UserId = aid.CreatorId,
+                Title = "Yeni İlan Talebi 🍽️",
+                Message = $"'{aid.Title}' ilanınız bir öğrenci tarafından talep edildi. Onaylamak için lütfen kontrol edin."
+            };
+            await _notificationRepository.AddAsync(creatorNotification);
+            await SendPushAndWhatsAppNotifications(aid.CreatorId, creatorNotification.Title, creatorNotification.Message);
 
-                // Sadece o öğrenciye özel 'alt/kopya' bir ilan (Portion Aid) oluşturulur.
-                // ParentId = Ana İlan ID'si olur ki sonradan reddedilirse ana ilanın stoğuna geri eklenebilsin.
-                var portionAid = new Aid
-                {
-                    Title = aid.Title,
-                    Description = aid.Description,
-                    CategoryId = aid.CategoryId,
-                    CreatorId = aid.CreatorId,
-                    ClaimerId = finalClaimerId,
-                    Price = aid.Price,
-                    Location = aid.Location,
-                    Status = "Claimed",
-                    Quantity = 1,
-                    RemainingQuantity = 0,
-                    ParentId = aid.Id
-                };
-
-                var createdPortion = await _aidRepository.AddAsync(portionAid);
-
-                // İlgi bildirimler işletmeye gönderilir
-                var creatorNotification = new Notification
-                {
-                    UserId = aid.CreatorId,
-                    Title = "Yeni İlan Talebi 🍽️",
-                    Message = $"'{aid.Title}' ilanınız bir öğrenci tarafından talep edildi. Onaylamak için lütfen kontrol edin."
-                };
-                await _notificationRepository.AddAsync(creatorNotification);
-                await SendPushAndWhatsAppNotifications(aid.CreatorId, creatorNotification.Title, creatorNotification.Message);
-
-                return Ok(createdPortion);
-            }
+            return Ok(createdPortion);
         }
 
         [HttpPut("{id}")]

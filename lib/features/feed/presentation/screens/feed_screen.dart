@@ -175,11 +175,14 @@ class _AdCard extends StatelessWidget {
                               color: Colors.grey,
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              ad.location,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
+                            Flexible(
+                              child: Text(
+                                ad.location.isNotEmpty ? ad.location : 'Belirtilmedi',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             if (ad.quantity > 1) ...[

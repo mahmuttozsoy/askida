@@ -29,5 +29,6 @@ namespace Askida.Api.Application.DTOs
         public double Price { get; set; }
         public string Location { get; set; } = string.Empty;
         public int Quantity { get; set; } = 1;
+        public Microsoft.AspNetCore.Http.IFormFile? Image { get; set; }
     }
 }
