@@ -281,16 +281,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(height: 32),
           const Text('Hesap', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
           const SizedBox(height: 16),
-          ListTile(
-            leading: const Icon(Icons.lock_outline),
-            title: const Text('Şifre Değiştir'),
-            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.')),
-              );
-            },
-          ),
+
           ListTile(
             leading: const Icon(Icons.delete_outline, color: Colors.red),
             title: const Text('Hesabı Sil', style: TextStyle(color: Colors.red)),

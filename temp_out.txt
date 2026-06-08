@@ -1,0 +1,100 @@
+    let e = t.usersList.filter(e => e.role === `Student`).length,
+        r = t.usersList.filter(e => e.role === `Student` && e.verificationStatus === `Pending`).length,
+        i = t.usersList.filter(e => e.role === `Business` || e.role === `Supporter`).length;
+    t.usersList.filter(e => {
+        let n = !1;
+        t.activeTab === `pending` ? n = e.role === `Student` && e.verificationStatus === `Pending` : t.activeTab === `students` ? n = e.role === `Student` : t.activeTab === `partners` && (n = e.role === `Business` || e.role === `Supporter`);
+        let r = e.fullName.toLowerCase().includes(t.searchQuery.toLowerCase()) || e.email.toLowerCase().includes(t.searchQuery.toLowerCase());
+        return n && r
+    }), n.innerHTML = `
+    <div class="dashboard-wrapper">
+      <!-- Mobile Header -->
+      <div class="mobile-header">
+        <div class="sidebar-header" style="margin-bottom: 0; padding-left: 0;">
+          <i class="fas fa-hand-holding-heart sidebar-brand-icon"></i>
+          <span class="sidebar-brand-name">Askıda</span>
+        </div>
+        <button id="mobile-menu-btn" class="mobile-menu-btn">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      
+      <!-- Mobile Overlay -->
+      <div id="mobile-overlay" class="mobile-overlay"></div>
+      
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <i class="fas fa-hand-holding-heart sidebar-brand-icon"></i>
+          <span class="sidebar-brand-name">Askıda Admin</span>
+        </div>
+        
+        <ul class="sidebar-menu">
+          <li class="menu-item ${t.activeTab===`pending`?`active`:``}" id="tab-pending">
+            <i class="fas fa-clock-rotate-left"></i>
+            <span>Onay Bekleyenler</span>
+          </li>
+          <li class="menu-item ${t.activeTab===`students`?`active`:``}" id="tab-students">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Tüm Öğrenciler</span>
+          </li>
+          <li class="menu-item ${t.activeTab===`partners`?`active`:``}" id="tab-partners">
+            <i class="fas fa-users"></i>
+            <span>İşletme & Destekçiler</span>
+          </li>
+          <li class="menu-item ${t.activeTab===`products`?`active`:``}" id="tab-products">
+            <i class="fas fa-box-open"></i>
+            <span>Ürün Yönetimi</span>
+          </li>
+          <li class="menu-item ${t.activeTab===`requests`?`active`:``}" id="tab-requests">
+            <i class="fas fa-hand-holding"></i>
+            <span>Öğrenci Talepleri</span>
+          </li>
+          <li class="menu-item ${t.activeTab===`donations`?`active`:``}" id="tab-donations">
+            <i class="fas fa-hand-holding-dollar"></i>
+            <span>Yapılan Bağışlar</span>
+          </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+          <div class="admin-profile">
+            <div class="admin-avatar">
+              ${t.adminUser?.fullName?.substring(0,2).toUpperCase()||`AD`}
+            </div>
+            <div class="admin-info">
+              <div class="name">${t.adminUser?.fullName||`Yönetici`}</div>
+              <div class="role">Sistem Yöneticisi</div>
+            </div>
+          </div>
+          <button id="btn-logout" class="btn-logout">
+            <i class="fas fa-right-from-bracket"></i>
+            <span>Güvenli Çıkış</span>
+          </button>
+        </div>
+      </aside>
+      
+      <!-- Main Content -->
+      <main class="main-content">
+        <header class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="page-title">
+            <h2>Askıda Yönetim Paneli</h2>
+            <p>Sistem verilerini ve talepleri yönetin.</p>
+          </div>
+          <button id="btn-refresh-data" class="btn-glowing" style="padding: 8px 16px; font-size: 14px; background: rgba(52, 152, 219, 0.2); color: var(--secondary); border: 1px solid rgba(52, 152, 219, 0.5);">
+            <i class="fas fa-sync-alt"></i> Verileri Yenile
+          </button>
+        </header>
+        
+        <!-- Stats Grid -->
+        <section class="stats-grid">
+          <div class="stat-card glass-panel purple">
+            <div class="stat-info">
+              <div class="stat-value">${e}</div>
+              <div class="stat-label">Kayıtlı Öğrenci</div>
+            </div>
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-graduation-cap"></i>
+            </div>
+          </div>
+          
+          <div class="stat-card glass-panel orange">

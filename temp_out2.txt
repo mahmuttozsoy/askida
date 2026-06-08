@@ -1,0 +1,105 @@
+        isAuthenticated: !!localStorage.getItem(`admin_session`),
+        adminUser: JSON.parse(localStorage.getItem(`admin_user`) || `null`),
+        activeTab: `pending`,
+        usersList: [],
+        productsList: [],
+        requestsList: [],
+        donationsList: [],
+        searchQuery: ``,
+        selectedUser: null,
+        isActionLoading: !1,
+        isListLoading: !1
+    },
+    n = document.getElementById(`app`),
+    r = document.createElement(`div`);
+r.className = `bg-glow-1`;
+var i = document.createElement(`div`);
+i.className = `bg-glow-2`, document.body.appendChild(r), document.body.appendChild(i);
+var a = document.createElement(`div`);
+a.className = `toast-container`, document.body.appendChild(a);
+
+function o(e, t = `success`) {
+    let n = document.createElement(`div`);
+    n.className = `toast ${t}`;
+    let r = `fa-check-circle`;
+    t === `error` && (r = `fa-exclamation-circle`), t === `info` && (r = `fa-info-circle`), n.innerHTML = `<i class="fas ${r}"></i> <span>${e}</span>`, a.appendChild(n), setTimeout(() => {
+        n.style.animation = `slideIn 0.3s reverse forwards`, setTimeout(() => n.remove(), 300)
+    }, 4e3)
+}
+
+function s(e) {
+    if (!e) return `-`;
+    try {
+        return new Date(e).toLocaleString(`tr-TR`, {
+            day: `2-digit`,
+            month: `2-digit`,
+            year: `numeric`,
+            hour: `2-digit`,
+            minute: `2-digit`
+        })
+    } catch {
+        return e
+    }
+}
+async function c() {
+    if (t.isAuthenticated) {
+        t.isListLoading = !0, y();
+        try {
+            let n = await fetch(`${e}/users`);
+            if (!n.ok) throw Error(`Kullanıcı listesi alınamadı.`);
+            t.usersList = (await n.json()).filter(e => e.role !== `Admin`)
+        } catch (e) {
+            o(e.message || `Sunucuyla bağlantı kurulamadı.`, `error`)
+        } finally {
+            t.isListLoading = !1, y()
+        }
+    }
+}
+async function l() {
+    try {
+        let n = await fetch(`${e}/products`);
+        if (!n.ok) throw Error(`Ürünler alınamadı.`);
+        t.productsList = await n.json()
+    } catch (e) {
+        o(e.message, `error`)
+    }
+}
+async function u() {
+    try {
+        let n = await fetch(`${e}/requests`);
+        if (!n.ok) throw Error(`Talepler alınamadı.`);
+        t.requestsList = await n.json()
+    } catch (e) {
+        o(e.message, `error`)
+    }
+}
+async function d() {
+    try {
+        let n = await fetch(`${e}/donations`);
+        if (!n.ok) throw Error(`Bağışlar alınamadı.`);
+        t.donationsList = await n.json()
+    } catch (e) {
+        o(e.message, `error`)
+    }
+}
+async function f() {
+    t.isListLoading = !0, y(), await Promise.all([c(), l(), u(), d()]), t.isListLoading = !1, y()
+}
+async function p(n, r) {
+    let i = document.getElementById(`btn-login-submit`);
+    i && (i.disabled = !0, i.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Giriş Yapılıyor...`);
+    try {
+        let i = await fetch(`${e}/auth/login`, {
+                method: `POST`,
+                headers: {
+                    "Content-Type": `application/json`
+                },
+                body: JSON.stringify({
+                    email: n,
+                    password: r,
+                    role: `Admin`
+                })
+            }),
+            a = await i.json();
+        if (!i.ok || !a.success) throw Error(a.message || `E-posta veya şifre hatalı.`);
+        let s = a.data.user;

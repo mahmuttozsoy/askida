@@ -56,4 +56,14 @@ Bu proje; ihtiyaç sahipleri (öğrenciler) ile hayırseverleri ve işletmeleri 
 * Bildirim izinlerinin ve Push Notification altyapısının (Firebase) tam olarak test edilmesi,
 * Öğrenci onay (Verification) süreçlerinin Admin panelinden tamamen yönetilebilirliğinin teyit edilmesi.
 
-> **Not (AI için):** Bu dosya, projeye yeniden başlandığında bağlamın (context) hızlıca hatırlanması için özenle oluşturulmuştur. Yeni özellikler eklendikçe bu dosya güncellenecektir.
+## 📌 Geliştirici Notları ve Uygulama Kuralları (ÖNEMLİ)
+Sonraki güncellemelerde unutulmaması gereken kritik iş mantıkları (Business Rules) şunlardır:
+1. **Öğrenci Kısıtlamaları:** Öğrenciler ürün fiyatlarını GÖREMEZ. İlan detay sayfasında veya ana sayfada fiyat gösterilmemelidir.
+2. **Talep (Request) Kontrolü:** Bir öğrenci, bir ilana talep gönderdiğinde, bu talep onaylanana veya reddedilene kadar aynı ilana ikinci bir talep GÖNDEREMEZ.
+3. **Ayarlar/Hesap:** "Şifre değiştir" özelliği hesap detaylarından kaldırılmıştır.
+4. **Medya Gösterimi:** İlan resimleri `ad.imageUrl` kullanılarak ve her zaman `http` prefix kontrolü yapılarak render edilmelidir (Eğer `http` yoksa API ana sunucu adresi önüne eklenmelidir). Uygulama varsayılan ana ikonu kullanmaktadır (Flutter logoları kaldırıldı).
+5. **Release (Yayın) Kuralları:** Uygulama paket adı (applicationId ve namespace) `com.askida.app` olarak ayarlanmıştır. Firebase `google-services.json` dosyası da bu isme ayarlıdır. Her Google Play Console güncellemesinde `pubspec.yaml` içindeki `version` ve `+buildNumber` artırılmalıdır. (Son Play Store sürüm kodu: 6)
+6. **Başlangıç/Splash Screen Yönlendirmesi:** Uygulama açılışında 2 saniyelik sabit bekleme süresine ek olarak `authProvider`'ın arka planda profil yüklemesi (`isLoading`) bitene kadar beklenir. Eğer API isteği yavaşsa veya başarısız olursa (`try-catch` ile korunmuştur) kullanıcı çıkış yapılmış sayılmaz, mevcut token varsa anasayfaya yönlendirilir.
+7. **Android MainActivity Paket Yolu:** Paket adı `com.askida.app` yapıldığı için, `MainActivity.kt` dosyası `android/app/src/main/kotlin/com/askida/app/` dizinine taşınmış ve dosya içerisindeki paket adı güncellenmiştir. Buna dikkat edilmemesi Android üzerinde Native ClassNotFound çökmelerine (Crash) sebep olur.
+
+> **Not (AI için):** Bu dosya, projeye yeniden başlandığında bağlamın (context) hızlıca hatırlanması için özenle oluşturulmuştur. Yeni özellikler eklendikçe ve kurallar belirlendikçe bu dosya güncellenecektir.

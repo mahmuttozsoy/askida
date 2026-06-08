@@ -139,10 +139,11 @@ class _RequestCard extends ConsumerWidget {
                     ],
                   ),
                 ),
-                Text(
-                  '${ad.price.toStringAsFixed(0)} TL',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.secondaryColor),
-                ),
+                if (!isStudent)
+                  Text(
+                    '${ad.price.toStringAsFixed(0)} TL',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.secondaryColor),
+                  ),
               ],
             ),
             if (claimerProfileAsync != null) ...[

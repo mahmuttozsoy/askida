@@ -39,6 +39,7 @@ namespace Askida.Api.Core.Entities
         public int Quantity { get; set; } = 1;
         public int RemainingQuantity { get; set; } = 1;
         public string ParentId { get; set; } = string.Empty;
+        public string ImageUrl { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 

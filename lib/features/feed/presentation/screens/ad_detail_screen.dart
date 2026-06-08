@@ -34,30 +34,40 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppTheme.primaryColor,
-                    AppTheme.primaryColor.withValues(alpha: 0.7),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            if (widget.ad.imageUrl != null && widget.ad.imageUrl!.isNotEmpty)
+              Image.network(
+                widget.ad.imageUrl!.startsWith('http')
+                    ? widget.ad.imageUrl!
+                    : 'https://api.askidagmtid.com${widget.ad.imageUrl}',
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              )
+            else
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primaryColor,
+                      AppTheme.primaryColor.withValues(alpha: 0.7),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    widget.ad.category == 'food'
+                        ? Icons.fastfood
+                        : (widget.ad.category == 'drink'
+                              ? Icons.local_cafe
+                              : Icons.restaurant),
+                    size: 80,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              child: Center(
-                child: Icon(
-                  widget.ad.category == 'food'
-                      ? Icons.fastfood
-                      : (widget.ad.category == 'drink'
-                            ? Icons.local_cafe
-                            : Icons.restaurant),
-                  size: 80,
-                  color: Colors.white,
-                ),
-              ),
-            ),
 
             Padding(
               padding: const EdgeInsets.all(24.0),
@@ -74,14 +84,17 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      Text(
-                        '${widget.ad.price.toStringAsFixed(0)} TL',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.secondaryColor,
+                      // NOT: Kullanıcının talebi üzerine, detay ekranındaki fiyat bilgisi
+                      // öğrenciler (isStudent == true) için tamamen gizlenmiştir.
+                      if (!widget.isStudent)
+                        Text(
+                          '${widget.ad.price.toStringAsFixed(0)} TL',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.secondaryColor,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -95,7 +108,9 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          widget.ad.location.isNotEmpty ? widget.ad.location : 'Belirtilmedi',
+                          widget.ad.location.isNotEmpty
+                              ? widget.ad.location
+                              : 'Belirtilmedi',
                           style: const TextStyle(fontSize: 16),
                           overflow: TextOverflow.visible,
                         ),
@@ -204,7 +219,9 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                               ? null
                               : () async {
                                   setState(() => _isLoading = true);
-                                  final messenger = ScaffoldMessenger.of(context);
+                                  final messenger = ScaffoldMessenger.of(
+                                    context,
+                                  );
                                   final navigator = Navigator.of(context);
                                   try {
                                     await ref
@@ -214,7 +231,7 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                                       messenger.showSnackBar(
                                         const SnackBar(
                                           content: Text(
-                                            'İlan başarıyla talep edildi! Afiyet olsun.',
+                                            'İlan başarıyla talep edildi!',
                                           ),
                                         ),
                                       );
@@ -256,7 +273,7 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                                 ),
                         ),
                       ],
-                    )
+                    ),
                   // Eski bağış butonu kaldırıldı. Artık bottomNavigationBar'da yer alacak.
                 ],
               ),
@@ -281,7 +298,9 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                     offset: const Offset(0, -5),
                   ),
                 ],
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -329,7 +348,10 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.add, color: AppTheme.primaryColor),
+                          icon: const Icon(
+                            Icons.add,
+                            color: AppTheme.primaryColor,
+                          ),
                           onPressed: () => setState(() => _donationQuantity++),
                         ),
                       ),
@@ -367,7 +389,8 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                                 builder: (context) => PaymentScreen(
                                   ad: widget.ad,
                                   quantity: _donationQuantity,
-                                  totalPrice: widget.ad.price * _donationQuantity,
+                                  totalPrice:
+                                      widget.ad.price * _donationQuantity,
                                 ),
                               ),
                             );
@@ -382,7 +405,11 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                       elevation: 4,
                       shadowColor: AppTheme.primaryColor.withValues(alpha: 0.5),
                     ),
-                    icon: const Icon(Icons.payment, color: Colors.white, size: 24),
+                    icon: const Icon(
+                      Icons.payment,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                     label: const Text(
                       'Ödemeye Geç',
                       style: TextStyle(

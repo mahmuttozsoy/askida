@@ -1,0 +1,250 @@
+function b() {
+    return t.isListLoading ? `
+      <div class="empty-state">
+        <i class="fas fa-spinner fa-spin" style="font-size: 2.5rem; color: var(--primary)"></i>
+        <h3 style="margin-top: 15px">Yükleniyor...</h3>
+        <p>Veriler sunucudan çekiliyor.</p>
+      </div>
+    ` : t.activeTab === `products` ? S() : t.activeTab === `requests` ? C() : t.activeTab === `donations` ? w() : x()
+}
+
+function x() {
+    let e = t.usersList.filter(e => {
+        let n = !1;
+        t.activeTab === `pending` ? n = e.role === `Student` && e.verificationStatus === `Pending` : t.activeTab === `students` ? n = e.role === `Student` : t.activeTab === `partners` && (n = e.role === `Business` || e.role === `Supporter`);
+        let r = e.fullName.toLowerCase().includes(t.searchQuery.toLowerCase()) || e.email.toLowerCase().includes(t.searchQuery.toLowerCase());
+        return n && r
+    });
+    return `
+          <div class="panel-header">
+            <h3 class="panel-title">${t.activeTab===`pending`?`Onay Bekleyen Başvurular`:t.activeTab===`students`?`Tüm Öğrenci Listesi`:`İşletme & Destekçi Ortaklarımız`}</h3>
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" id="search-input" placeholder="Öğrenci adı veya e-posta..." value="${t.searchQuery}">
+            </div>
+          </div>
+          
+          ${e.length===0?`
+            <div class="empty-state">
+              <i class="fas fa-folder-open"></i>
+              <h3>Hiç Sonuç Bulunamadı</h3>
+              <p>${t.searchQuery?`Arama kriterlerinize uyan kayıt bulunamadı.`:`Bu kategoride kullanıcı bulunmuyor.`}</p>
+            </div>
+          `:`
+            <div class="user-grid">
+              ${e.map(e=>`
+                <div class="user-card glass-panel">
+                  <div class="user-card-header">
+                    <div>
+                      <h4 class="user-name">${e.fullName}</h4>
+                      <span class="user-email">${e.email}</span>
+                    </div>
+                    <span class="status-badge ${e.verificationStatus.toLowerCase()}">${e.verificationStatus===`None`?`Belge Yok`:e.verificationStatus===`Pending`?`Onay Bekliyor`:e.verificationStatus===`Verified`?`Onaylandı`:`Reddedildi`}</span>
+                  </div>
+                  
+                  <div class="user-card-body">
+                    <div class="info-row">
+                      <i class="fas fa-calendar-alt"></i>
+                      <span>Kayıt: ${s(e.createdAt)}</span>
+                    </div>
+                    ${e.studentCategory?`
+                      <div class="info-row" style="color: var(--primary)">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>${e.studentCategory} - ${e.schoolName}</span>
+                      </div>
+                    `:``}
+                    ${e.phone?`
+                      <div class="info-row" style="color: var(--text-secondary); opacity: 0.85;">
+                        <i class="fas fa-phone"></i>
+                        <span>${e.phone}</span>
+                      </div>
+                    `:``}
+                    ${e.verificationDocumentUrl?`
+                      <div class="info-row" style="color: var(--success)">
+                        <i class="fas fa-paperclip"></i>
+                        <span>Öğrenci Belgesi Yüklü</span>
+                      </div>
+                    `:`
+                      <div class="info-row" style="color: var(--text-secondary)">
+                        <i class="fas fa-times-circle"></i>
+                        <span>Belge Yüklenmemiş</span>
+                      </div>
+                    `}
+                  </div>
+                  
+                  ${e.verificationDocumentUrl?`
+                    <button class="btn-card-action btn-review" data-id="${e.id}">
+                      <i class="fas fa-magnifying-glass"></i>
+                      <span>Belgeyi İncele</span>
+                    </button>
+                  `:`
+                    <div style="padding: 10px; text-align: center; border-radius: 8px; font-weight: bold; background: rgba(255,255,255,0.03); color: var(--text-secondary); margin-bottom: 8px; font-size: 0.85rem;">
+                      ${e.role===`Business`?`<i class="fas fa-store"></i> İşletme Hesabı`:e.role===`Supporter`?`<i class="fas fa-volunteer-activism"></i> Destekçi Hesabı`:`<i class="fas fa-user"></i> Öğrenci (Belge Yok)`}
+                    </div>
+                  `}
+                  <button class="btn-card-action btn-delete-user" data-id="${e.id}" style="background: rgba(231, 76, 60, 0.15); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.3); margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fas fa-trash-can"></i>
+                    <span>Kullanıcıyı Sil</span>
+                  </button>
+                </div>
+              `).join(``)}
+            </div>
+          `}
+  `
+}
+
+function S() {
+    return `
+    <div class="panel-header">
+      <h3 class="panel-title">Ürün Yönetimi</h3>
+      <button class="btn-glowing" style="padding: 8px 16px; font-size: 14px;" id="btn-add-product">
+        <i class="fas fa-plus"></i> Yeni Ürün Ekle
+      </button>
+    </div>
+    <div class="user-grid">
+      ${t.productsList.map(e=>`
+        <div class="user-card glass-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <h4 class="user-name" style="margin-bottom: 5px;">${e.title}</h4>
+            <div style="color: var(--secondary); font-weight: bold; font-size: 1.2rem; margin-bottom: 10px;">${e.price} TL</div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">${e.description}</p>
+          </div>
+          <button class="btn-card-action btn-delete-product" data-id="${e.id}" style="background: rgba(231, 76, 60, 0.15); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.3);">
+            <i class="fas fa-trash"></i> Ürünü Sil
+          </button>
+        </div>
+      `).join(``)}
+    </div>
+  `
+}
+
+function C() {
+    return `
+    <div class="panel-header">
+      <h3 class="panel-title">Öğrenci Talepleri (${t.requestsList.filter(e=>e.status===`Pending`).length} Bekleyen)</h3>
+    </div>
+    <div class="user-grid">
+      ${t.requestsList.map(e=>`
+        <div class="user-card glass-panel">
+          <div class="user-card-header">
+            <div>
+              <h4 class="user-name">${e.studentName}</h4>
+              <span class="user-email" style="color: var(--primary); font-weight: bold;">${e.productName}</span>
+            </div>
+            <span class="status-badge ${e.status===`Pending`?`pending`:e.status===`Approved`?`verified`:e.status===`Rejected`?`rejected`:`verified`}">
+              ${e.status===`Pending`?`Onay Bekliyor`:e.status===`Approved`?`Onaylandı (Eşleştirme Bekliyor)`:e.status===`Rejected`?`Reddedildi`:`Teslim Edildi`}
+            </span>
+          </div>
+          <div class="user-card-body">
+            <div class="info-row"><i class="fas fa-calendar"></i><span>${s(e.createdAt)}</span></div>
+          </div>
+          
+          ${e.status===`Pending`?`
+            <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; display: flex; gap: 10px;">
+              <button class="btn-card-action btn-approve-request" data-id="${e.id}" style="background: rgba(46, 204, 113, 0.15); color: var(--success); border: 1px solid rgba(46, 204, 113, 0.3); flex: 1;">
+                <i class="fas fa-check"></i> Onayla
+              </button>
+              <button class="btn-card-action btn-reject-request" data-id="${e.id}" style="background: rgba(231, 76, 60, 0.15); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.3); flex: 1;">
+                <i class="fas fa-times"></i> Reddet
+              </button>
+            </div>
+          `:``}
+
+          ${e.status===`Approved`?`
+            <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px;">Bu talebi karşılamak için bir bağışla eşleştirin:</p>
+              ${t.donationsList.filter(t=>t.status===`Completed`&&t.productId===e.productId).length>0?`
+                <select class="input-control select-donation-${e.id}" style="margin-bottom: 10px;">
+                  <option value="">-- Uygun Bir Bağış Seçin --</option>
+                  ${t.donationsList.filter(t=>t.status===`Completed`&&t.productId===e.productId).map(e=>`
+                    <option value="${e.id}">${e.amount} TL Bağış (ID: ${e.id.substring(0,8)}...)</option>
+                  `).join(``)}
+                </select>
+                <button class="btn-card-action btn-match-deliver" data-id="${e.id}" style="background: var(--success); color: white; border: none;">
+                  <i class="fas fa-check-circle"></i> Eşleştir ve Teslim Et
+                </button>
+              `:`
+                <div style="padding: 10px; border-radius: 8px; background: rgba(241, 196, 15, 0.1); border: 1px solid rgba(241, 196, 15, 0.3); color: #f1c40f; font-size: 0.85rem; text-align: center;">
+                  <i class="fas fa-exclamation-triangle"></i> Havuzda bu ürün için uygun bir bağış bulunmuyor. Teslimat için önce bağış yapılması gereklidir.
+                </div>
+              `}
+            </div>
+          `:``}
+        </div>
+      `).join(``)}
+    </div>
+  `
+}
+
+function w() {
+    return `
+    <div class="panel-header">
+      <h3 class="panel-title">Yapılan Bağışlar</h3>
+    </div>
+    <div class="user-grid">
+      ${t.donationsList.map(e=>{let n=t.productsList.find(t=>t.id===e.productId);return`
+        <div class="user-card glass-panel">
+          <div class="user-card-header">
+            <div>
+              <h4 class="user-name">Bağış: ${n?n.title:`Bilinmeyen Ürün`}</h4>
+              <span class="user-email" style="font-size: 1.1rem; font-weight: bold; color: var(--secondary);">${e.amount} TL</span>
+            </div>
+            <span class="status-badge ${e.status===`Completed`?`verified`:`pending`}">${e.status===`Completed`?`Havuzda Bekliyor`:`Kullanıldı (Teslim Edildi)`}</span>
+          </div>
+          <div class="user-card-body">
+            <div class="info-row"><i class="fas fa-calendar"></i><span>${s(e.createdAt)}</span></div>
+            <div class="info-row"><i class="fas fa-user-heart"></i><span>Destekçi ID: ${e.supporterId.substring(0,8)}...</span></div>
+          </div>
+        </div>
+      `}).join(`
+    `)}
+    </div>
+  `
+}
+
+function T() {
+    [`pending`, `students`, `partners`, `products`, `requests`, `donations`].forEach(e => {
+        let n = document.getElementById(`tab-${e}`);
+        n && n.addEventListener(`click`, () => {
+            t.activeTab = e, document.getElementById(`sidebar`)?.classList.remove(`open`), document.getElementById(`mobile-overlay`)?.classList.remove(`open`), y()
+        })
+    });
+    let n = document.getElementById(`search-input`);
+    n && n.addEventListener(`input`, e => {
+        t.searchQuery = e.target.value, y();
+        let n = document.getElementById(`search-input`);
+        n && (n.focus(), n.setSelectionRange(n.value.length, n.value.length))
+    });
+    let r = document.getElementById(`mobile-menu-btn`),
+        i = document.getElementById(`mobile-overlay`),
+        a = document.getElementById(`sidebar`);
+    r && r.addEventListener(`click`, () => {
+        a?.classList.toggle(`open`), i?.classList.toggle(`open`)
+    }), i && i.addEventListener(`click`, () => {
+        a?.classList.remove(`open`), i?.classList.remove(`open`)
+    });
+    let s = document.getElementById(`btn-logout`);
+    s && s.addEventListener(`click`, m), document.querySelectorAll(`.btn-review`).forEach(e => {
+        e.addEventListener(`click`, () => {
+            let n = e.getAttribute(`data-id`),
+                r = t.usersList.find(e => e.id === n);
+            r && (t.selectedUser = r, y())
+        })
+    }), document.querySelectorAll(`.btn-delete-user`).forEach(e => {
+        e.addEventListener(`click`, t => {
+            t.stopPropagation(), v(e.getAttribute(`data-id`))
+        })
+    });
+    let c = document.getElementById(`modal-close-btn`);
+    c && c.addEventListener(`click`, () => {
+        t.selectedUser = null, y()
+    });
+    let l = document.getElementById(`action-approve-btn`);
+    l && t.selectedUser && l.addEventListener(`click`, () => {
+        h(t.selectedUser.id)
+    });
+    let u = document.getElementById(`action-reject-btn`);
+    u && t.selectedUser && u.addEventListener(`click`, () => {
+        g(t.selectedUser.id)
+    });
+    let d = document.getElementById(`action-unverify-btn`);

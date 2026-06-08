@@ -61,6 +61,13 @@ public class RequestsController : ControllerBase
         var originalAid = await _aidRepository.GetByIdAsync(dto.ProductId);
         if (originalAid == null) return NotFound(new { success = false, message = "İlan bulunamadı." });
 
+        // NOT: Kullanıcının "bir öğrenci onay/ret gelene kadar ikinci bir talep yapamasın" isteği üzerine
+        // öğrencinin hali hazırda onay/red bekleyen ("Claimed") aktif bir talebi var mı kontrol ediliyor.
+        var existingAids = await _aidRepository.GetByClaimerIdAsync(dto.ClaimerId);
+        if (existingAids.Any(a => a.Status == "Claimed"))
+        {
+            return BadRequest(new { success = false, message = "Zaten bekleyen bir talebiniz var. Lütfen sonuçlanmasını bekleyin." });
+        }
         // Kullanıcının istediği mantık: Talep edildiğinde stok düşmez, Admin onaylayınca düşer!
         // Bu yüzden orijinal ilanın status'ünü Available bırakıyoruz. Öğrenci için yeni bir talep (Aid kaydı) açıyoruz.
 

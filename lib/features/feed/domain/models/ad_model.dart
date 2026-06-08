@@ -101,7 +101,7 @@ class FoodAd {
       remainingQuantity: json['remainingQuantity'] ?? 1,
       parentId: json['parentId'],
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
-      imageUrl: json['imageUrl'],
+      imageUrl: json['imageUrl'] ?? json['ImageUrl'],
     );
   }
 }

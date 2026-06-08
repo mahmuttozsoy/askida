@@ -133,10 +133,14 @@ class AuthNotifier extends Notifier<AuthState> {
 
     UserModel? profile;
     if (isAuthenticated && userId != null) {
-      final response = await _userApiService.getUserProfile(userId);
-      if (response['success'] == true && response['user'] != null) {
-        profile = UserModel.fromJson(response['user']);
-        _registerFcmToken(userId);
+      try {
+        final response = await _userApiService.getUserProfile(userId);
+        if (response['success'] == true && response['user'] != null) {
+          profile = UserModel.fromJson(response['user']);
+          _registerFcmToken(userId);
+        }
+      } catch (e) {
+        debugPrint("[AuthNotifier] Error fetching profile during init: $e");
       }
     }
 

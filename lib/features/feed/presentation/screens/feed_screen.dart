@@ -142,19 +142,32 @@ class _AdCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: AppTheme.primaryColor.withValues(
-                      alpha: 0.1,
+                  if (ad.imageUrl != null && ad.imageUrl!.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.network(
+                        ad.imageUrl!.startsWith('http')
+                            ? ad.imageUrl!
+                            : 'https://api.askidagmtid.com${ad.imageUrl}',
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  else
+                    CircleAvatar(
+                      backgroundColor: AppTheme.primaryColor.withValues(
+                        alpha: 0.1,
+                      ),
+                      child: Icon(
+                        ad.category == 'food'
+                            ? Icons.fastfood
+                            : (ad.category == 'drink'
+                                  ? Icons.local_cafe
+                                  : Icons.restaurant),
+                        color: AppTheme.primaryColor,
+                      ),
                     ),
-                    child: Icon(
-                      ad.category == 'food'
-                          ? Icons.fastfood
-                          : (ad.category == 'drink'
-                                ? Icons.local_cafe
-                                : Icons.restaurant),
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -207,14 +220,17 @@ class _AdCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text(
-                    '${ad.price.toStringAsFixed(0)} TL',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.secondaryColor,
-                      fontSize: 18,
+                  // NOT: Kullanıcının talebi üzerine, ürün fiyatlarının (PİYASA DEĞERİ) 
+                  // öğrenciler tarafından görülmesi tamamen engellendi. (Sadece destekçiler görebilir)
+                  if (!isStudent)
+                    Text(
+                      '${ad.price.toStringAsFixed(0)} TL',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.secondaryColor,
+                        fontSize: 18,
+                      ),
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 12),

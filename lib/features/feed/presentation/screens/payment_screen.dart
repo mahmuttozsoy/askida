@@ -68,7 +68,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
         // C# Backend'e Iyzico isteği at (VPS'deki 5024 portuna)
         final dio = ApiClient.create('');
-        final response = await dio.post('http://195.35.56.82:5024/api/Payment/pay', data: {
+        // NOT: Kullanıcının talebi üzerine local test ipleri kaldırıldı ve 
+        // güvenli ödeme işlemleri için kalıcı olarak canlı sunucu adresi sabitlendi.
+        final response = await dio.post('https://api.askidagmtid.com/api/Payment/pay', data: {
           'cardHolderName': cardHolderName,
           'cardNumber': cardNumber,
           'expireMonth': expireMonth,

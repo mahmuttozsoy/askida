@@ -1,9 +1,9 @@
 import './style.css';
 
 // Dynamic API URL resolution
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:5024/api'
-  : 'http://172.20.10.5:5024/api';
+// NOT: Geliştirme sürecinde yaşanan localhost hatasını önlemek amacıyla, 
+// buradaki adres kalıcı olarak canlı sunucu (api.askidagmtid.com) şeklinde sabitlendi.
+const API_BASE_URL = 'https://api.askidagmtid.com/api';
 
 // App State
 let state = {
@@ -11,6 +11,9 @@ let state = {
   adminUser: JSON.parse(localStorage.getItem('admin_user') || 'null'),
   activeTab: 'pending', // 'pending' or 'all'
   usersList: [],
+  productsList: [],
+  requestsList: [],
+  donationsList: [],
   searchQuery: '',
   selectedUser: null,
   isActionLoading: false,
@@ -70,21 +73,53 @@ function formatDate(dateStr) {
 // Fetch Users List from .NET API
 async function fetchUsers() {
   if (!state.isAuthenticated) return;
-  state.isListLoading = true;
-  renderApp();
-  
   try {
     const response = await fetch(`${API_BASE_URL}/users`);
     if (!response.ok) throw new Error('Kullanıcı listesi alınamadı.');
     const users = await response.json();
-    // Exclude the logged-in admin from verification listings
     state.usersList = users.filter(u => u.role !== 'Admin');
   } catch (e) {
     showToast(e.message || 'Sunucuyla bağlantı kurulamadı.', 'error');
-  } finally {
-    state.isListLoading = false;
-    renderApp();
   }
+}
+
+async function fetchProducts() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products`);
+    if (!response.ok) throw new Error('Ürünler alınamadı.');
+    state.productsList = await response.json();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function fetchRequests() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/requests`);
+    if (!response.ok) throw new Error('Talepler alınamadı.');
+    state.requestsList = await response.json();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function fetchDonations() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/donations`);
+    if (!response.ok) throw new Error('Bağışlar alınamadı.');
+    state.donationsList = await response.json();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function fetchAllData() {
+  if (!state.isAuthenticated) return;
+  state.isListLoading = true;
+  renderApp();
+  await Promise.all([fetchUsers(), fetchProducts(), fetchRequests(), fetchDonations()]);
+  state.isListLoading = false;
+  renderApp();
 }
 
 // Login action
@@ -122,7 +157,7 @@ async function handleLogin(email, password) {
     showToast('Giriş başarılı! Yönetim paneline yönlendiriliyorsunuz.', 'success');
     
     // Fetch user data
-    fetchUsers();
+    fetchAllData();
     
   } catch (e) {
     showToast(e.message, 'error');
@@ -260,7 +295,9 @@ async function handleAddProduct(e) {
     formData.append('CategoryId', document.getElementById('prod-category').value);
     formData.append('Price', document.getElementById('prod-price').value);
     formData.append('Location', document.getElementById('prod-location').value);
-    formData.append('Quantity', document.getElementById('prod-quantity').value);
+    // NOT: Kullanıcının isteği doğrultusunda "MİKTAR / KİŞİ SAYISI" alanı arayüzden 
+    // kaldırıldığı için, API'ye gönderilen miktar varsayılan olarak her zaman 1'e sabitlendi.
+    formData.append('Quantity', 1);
     
     formData.append('CreatorId', state.adminUser?.id || 'mock-supporter-id');
 
@@ -293,6 +330,57 @@ async function handleAddProduct(e) {
       submitBtn.disabled = false;
       submitBtn.innerHTML = '<i class="fas fa-check"></i> İlanı Yayınla';
     }
+  }
+}
+
+async function handleDeleteProduct(productId) {
+  if (!confirm('Bu ilanı silmek istediğinize emin misiniz?')) return;
+  state.isActionLoading = true;
+  renderApp();
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/${productId}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('İlan silinemedi.');
+    showToast('İlan başarıyla silindi.', 'success');
+    fetchAllData();
+  } catch (e) {
+    showToast(e.message, 'error');
+  } finally {
+    state.isActionLoading = false;
+    renderApp();
+  }
+}
+
+async function handleApproveRequest(requestId) {
+  state.isActionLoading = true;
+  renderApp();
+  try {
+    const response = await fetch(`${API_BASE_URL}/requests/${requestId}/approve`, { method: 'POST' });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Onaylama başarısız.');
+    showToast('Talep onaylandı.', 'success');
+    fetchAllData();
+  } catch (e) {
+    showToast(e.message, 'error');
+  } finally {
+    state.isActionLoading = false;
+    renderApp();
+  }
+}
+
+async function handleRejectRequest(requestId) {
+  state.isActionLoading = true;
+  renderApp();
+  try {
+    const response = await fetch(`${API_BASE_URL}/requests/${requestId}/reject`, { method: 'POST' });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Reddetme başarısız.');
+    showToast('Talep reddedildi.', 'info');
+    fetchAllData();
+  } catch (e) {
+    showToast(e.message, 'error');
+  } finally {
+    state.isActionLoading = false;
+    renderApp();
   }
 }
 
@@ -385,7 +473,19 @@ function renderApp() {
             <i class="fas fa-hand-holding-heart"></i>
             <span>İşletme & Destekçiler</span>
           </li>
-          <li class="menu-item ${state.activeTab === 'add_product' ? 'active' : ''}" id="tab-add-product">
+          <li class="menu-item ${state.activeTab === 'products' ? 'active' : ''}" id="tab-products">
+            <i class="fas fa-box-open"></i>
+            <span>Ürün Yönetimi</span>
+          </li>
+          <li class="menu-item ${state.activeTab === 'requests' ? 'active' : ''}" id="tab-requests">
+            <i class="fas fa-hand-holding"></i>
+            <span>Öğrenci Talepleri</span>
+          </li>
+          <li class="menu-item ${state.activeTab === 'donations' ? 'active' : ''}" id="tab-donations">
+            <i class="fas fa-hand-holding-dollar"></i>
+            <span>Yapılan Bağışlar</span>
+          </li>
+          <li class="menu-item ${state.activeTab === 'add_product' ? 'active' : ''}" id="tab-add-product" style="display:none;">
             <i class="fas fa-plus-circle"></i>
             <span>Ürün / İlan Ekle</span>
           </li>
@@ -455,6 +555,9 @@ function renderApp() {
           ${state.activeTab === 'add_product' ? `
             <div class="panel-header">
               <h3 class="panel-title">Yeni Ürün / İlan Ekle</h3>
+              <button class="btn-action" id="btn-back-to-products" style="background: rgba(255,255,255,0.1); border:none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+                <i class="fas fa-arrow-left"></i> İlanlara Dön
+              </button>
             </div>
             <div class="add-product-container">
               <form id="add-product-form" class="product-form">
@@ -487,20 +590,11 @@ function renderApp() {
                   </div>
                 </div>
 
-                <div class="form-row">
-                  <div class="form-group half">
-                    <label for="prod-price">PİYASA DEĞERİ (₺)</label>
-                    <div class="input-wrapper">
-                      <i class="fas fa-lira-sign"></i>
-                      <input type="number" id="prod-price" class="input-control" placeholder="0.00" step="0.01" min="0" required>
-                    </div>
-                  </div>
-                  <div class="form-group half">
-                    <label for="prod-quantity">MİKTAR / KİŞİ SAYISI</label>
-                    <div class="input-wrapper">
-                      <i class="fas fa-hashtag"></i>
-                      <input type="number" id="prod-quantity" class="input-control" placeholder="1" min="1" value="1" required>
-                    </div>
+                <div class="form-group">
+                  <label for="prod-price">PİYASA DEĞERİ (₺)</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-lira-sign"></i>
+                    <input type="number" id="prod-price" class="input-control" placeholder="0.00" step="0.01" min="0" required>
                   </div>
                 </div>
 
@@ -532,6 +626,86 @@ function renderApp() {
                   <i class="fas fa-check"></i> İlanı Yayınla
                 </button>
               </form>
+            </div>
+          ` : state.activeTab === 'products' ? `
+            <div class="panel-header">
+              <h3 class="panel-title">Ürün Yönetimi</h3>
+              <button class="btn-glowing" style="padding: 8px 16px; font-size: 14px;" id="btn-add-product">
+                <i class="fas fa-plus"></i> Yeni Ürün / İlan Ekle
+              </button>
+            </div>
+            <div class="user-grid">
+              ${state.productsList.map(e => `
+                <div class="user-card glass-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+                  <div>
+                    <h4 class="user-name" style="margin-bottom: 5px;">${e.title}</h4>
+                    <div style="color: var(--secondary); font-weight: bold; font-size: 1.2rem; margin-bottom: 10px;">${e.price} TL</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">${e.description}</p>
+                  </div>
+                  <button class="btn-card-action btn-delete-product" data-id="${e.id}" style="background: rgba(231, 76, 60, 0.15); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.3);">
+                    <i class="fas fa-trash"></i> İlanı Kaldır
+                  </button>
+                </div>
+              `).join('')}
+              ${state.productsList.length === 0 ? '<p style="color: var(--text-secondary); text-align: center; width: 100%;">Henüz yayınlanan bir ilan bulunmuyor.</p>' : ''}
+            </div>
+          ` : state.activeTab === 'requests' ? `
+            <div class="panel-header">
+              <h3 class="panel-title">Öğrenci Talepleri (${state.requestsList.filter(e => e.status === 'Pending').length} Bekleyen)</h3>
+            </div>
+            <div class="user-grid">
+              ${state.requestsList.map(e => `
+                <div class="user-card glass-panel">
+                  <div class="user-card-header">
+                    <div>
+                      <h4 class="user-name">${e.studentName}</h4>
+                      <span class="user-email" style="color: var(--primary); font-weight: bold;">${e.productName}</span>
+                    </div>
+                    <span class="status-badge ${e.status === 'Pending' ? 'pending' : e.status === 'Approved' ? 'verified' : e.status === 'Rejected' ? 'rejected' : 'verified'}">
+                      ${e.status === 'Pending' ? 'Onay Bekliyor' : e.status === 'Approved' ? 'Onaylandı (Eşleştirme Bekliyor)' : e.status === 'Rejected' ? 'Reddedildi' : 'Teslim Edildi'}
+                    </span>
+                  </div>
+                  <div class="user-card-body">
+                    <div class="info-row"><i class="fas fa-calendar"></i><span>${formatDate(e.createdAt)}</span></div>
+                  </div>
+                  
+                  ${e.status === 'Pending' ? `
+                    <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; display: flex; gap: 10px;">
+                      <button class="btn-card-action btn-approve-request" data-id="${e.id}" style="background: rgba(46, 204, 113, 0.15); color: var(--success); border: 1px solid rgba(46, 204, 113, 0.3); flex: 1;">
+                        <i class="fas fa-check"></i> Onayla
+                      </button>
+                      <button class="btn-card-action btn-reject-request" data-id="${e.id}" style="background: rgba(231, 76, 60, 0.15); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.3); flex: 1;">
+                        <i class="fas fa-times"></i> Reddet
+                      </button>
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+              ${state.requestsList.length === 0 ? '<p style="color: var(--text-secondary); text-align: center; width: 100%;">Henüz talep bulunmuyor.</p>' : ''}
+            </div>
+          ` : state.activeTab === 'donations' ? `
+            <div class="panel-header">
+              <h3 class="panel-title">Yapılan Bağışlar</h3>
+            </div>
+            <div class="user-grid">
+              ${state.donationsList.map(e => {
+                let p = state.productsList.find(t => t.id === e.productId);
+                return `
+                <div class="user-card glass-panel">
+                  <div class="user-card-header">
+                    <div>
+                      <h4 class="user-name">Bağış: ${p ? p.title : 'Bilinmeyen Ürün'}</h4>
+                      <span class="user-email" style="font-size: 1.1rem; font-weight: bold; color: var(--secondary);">${e.amount} TL</span>
+                    </div>
+                    <span class="status-badge ${e.status === 'Completed' ? 'verified' : 'pending'}">${e.status === 'Completed' ? 'Havuzda Bekliyor' : 'Kullanıldı (Teslim Edildi)'}</span>
+                  </div>
+                  <div class="user-card-body">
+                    <div class="info-row"><i class="fas fa-calendar"></i><span>${formatDate(e.createdAt)}</span></div>
+                    <div class="info-row"><i class="fas fa-user-heart"></i><span>Destekçi ID: ${e.supporterId.substring(0,8)}...</span></div>
+                  </div>
+                </div>
+              `}).join('')}
+              ${state.donationsList.length === 0 ? '<p style="color: var(--text-secondary); text-align: center; width: 100%;">Henüz bağış bulunmuyor.</p>' : ''}
             </div>
           ` : `
             <div class="panel-header">
@@ -840,10 +1014,50 @@ function attachDashboardEvents() {
     });
   }
   
+  const tabProducts = document.getElementById('tab-products');
+  if (tabProducts) {
+    tabProducts.addEventListener('click', () => {
+      state.activeTab = 'products';
+      renderApp();
+    });
+  }
+
+  const tabRequests = document.getElementById('tab-requests');
+  if (tabRequests) {
+    tabRequests.addEventListener('click', () => {
+      state.activeTab = 'requests';
+      renderApp();
+    });
+  }
+
+  const tabDonations = document.getElementById('tab-donations');
+  if (tabDonations) {
+    tabDonations.addEventListener('click', () => {
+      state.activeTab = 'donations';
+      renderApp();
+    });
+  }
+  
   const tabAddProduct = document.getElementById('tab-add-product');
   if (tabAddProduct) {
     tabAddProduct.addEventListener('click', () => {
       state.activeTab = 'add_product';
+      renderApp();
+    });
+  }
+
+  const btnAddProduct = document.getElementById('btn-add-product');
+  if (btnAddProduct) {
+    btnAddProduct.addEventListener('click', () => {
+      state.activeTab = 'add_product';
+      renderApp();
+    });
+  }
+
+  const btnBackToProducts = document.getElementById('btn-back-to-products');
+  if (btnBackToProducts) {
+    btnBackToProducts.addEventListener('click', () => {
+      state.activeTab = 'products';
       renderApp();
     });
   }
@@ -925,6 +1139,33 @@ function attachDashboardEvents() {
         state.selectedUser = user;
         renderApp();
       }
+    });
+  });
+
+  const deleteProductButtons = document.querySelectorAll('.btn-delete-product');
+  deleteProductButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      handleDeleteProduct(id);
+    });
+  });
+
+  const approveRequestButtons = document.querySelectorAll('.btn-approve-request');
+  approveRequestButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      handleApproveRequest(id);
+    });
+  });
+
+  const rejectRequestButtons = document.querySelectorAll('.btn-reject-request');
+  rejectRequestButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      handleRejectRequest(id);
     });
   });
 
@@ -1032,7 +1273,7 @@ function attachDashboardEvents() {
 
 // Initial Fetch on startup
 if (state.isAuthenticated) {
-  fetchUsers();
+  fetchAllData();
 } else {
   renderApp();
 }

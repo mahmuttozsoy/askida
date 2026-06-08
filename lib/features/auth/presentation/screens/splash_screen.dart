@@ -12,19 +12,26 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen> {
+  bool _minDelayPassed = false;
+
   @override
   void initState() {
     super.initState();
-    _checkAuthAndNavigate();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _minDelayPassed = true;
+        });
+        _checkAndNavigate();
+      }
+    });
   }
 
-  Future<void> _checkAuthAndNavigate() async {
-    // Wait for splash animation or minimum delay
-    await Future.delayed(const Duration(seconds: 2));
+  void _checkAndNavigate() {
+    if (!_minDelayPassed) return;
     
-    if (!mounted) return;
-
     final auth = ref.read(authProvider);
+    if (auth.isLoading) return; // Wait until auth state is initialized
     
     if (auth.isAuthenticated) {
       if (auth.userProfile?.isAdmin == true || auth.role == UserRole.admin) {
@@ -41,6 +48,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authProvider, (previous, next) {
+      if (!next.isLoading) {
+        _checkAndNavigate();
+      }
+    });
+
     return const Scaffold(
       backgroundColor: AppTheme.primaryColor,
       body: Center(
