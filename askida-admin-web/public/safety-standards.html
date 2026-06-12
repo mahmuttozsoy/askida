@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Güvenlik Standartları (CSAE) | Askıda</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+                              radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header-icon {
+            font-size: 3rem;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            color: #fff;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        ul {
+            list-style-type: none;
+            margin-bottom: 20px;
+        }
+
+        ul li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        ul li::before {
+            content: '\f058';
+            font-family: 'FontAwesome';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            color: var(--accent-secondary);
+            font-size: 0.9rem;
+        }
+
+        .highlight-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+
+        .highlight-box p {
+            color: #f8fafc;
+            margin-bottom: 0;
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <i class="fas fa-shield-halved header-icon"></i>
+            <h1>Güvenlik Standartları ve CSAE Politikası</h1>
+            <p>Son Güncelleme: 11 Haziran 2026</p>
+        </div>
+
+        <p>Askıda uygulaması, tüm kullanıcıları için güvenli, saygılı ve yasalara uygun bir platform sağlamayı taahhüt eder. Çocuğun cinsel istismarı ve sömürüsü (CSAE) konusunda <strong>sıfır tolerans</strong> politikası uygulamaktayız.</p>
+
+        <div class="highlight-box">
+            <p><strong>ÖNEMLİ:</strong> Askıda platformu üzerinde çocukların cinsel istismarına, istismara yönlendirmeye veya bu tür materyallerin (CSAE) paylaşımına hiçbir şart altında izin verilmez. Bu kuralın ihlali durumunda hesap derhal ve kalıcı olarak kapatılır ve durum ilgili kolluk kuvvetlerine bildirilir.</p>
+        </div>
+
+        <h2>1. Sıfır Tolerans Politikası</h2>
+        <p>Aşağıdaki içeriklerin ve davranışların platformumuzda yer alması kesinlikle yasaktır:</p>
+        <ul>
+            <li>Çocukların cinsel istismarını tasvir eden veya teşvik eden her türlü görsel, metin veya bağlantı.</li>
+            <li>Çocukları istismar etme amacı güden veya çocuklara yönelik cinsel veya yırtıcı davranışlar (grooming).</li>
+            <li>Çocukların fiziksel, zihinsel veya duygusal sağlığını tehlikeye atacak diğer her türlü istismar eylemi.</li>
+        </ul>
+
+        <h2>2. Raporlama ve İhbar Mekanizması</h2>
+        <p>Kullanıcılarımız, şüpheli gördükleri hesapları, mesajları veya ilanları uygulama içerisindeki "Şikayet Et" butonu üzerinden veya doğrudan destek e-posta adresimiz aracılığıyla derhal bize bildirmelidir. Yapılan ihbarlar en yüksek öncelik seviyesinde, 7/24 incelenir.</p>
+        
+        <h2>3. İhlal Durumunda Uygulanacak Yaptırımlar</h2>
+        <p>Güvenlik standartlarımızın veya CSAE politikalarımızın ihlal edildiğinin tespit edilmesi halinde:</p>
+        <ul>
+            <li>İlgili içeriğin platformdan derhal kalıcı olarak silinmesi,</li>
+            <li>İhlali gerçekleştiren kullanıcının hesabının kalıcı olarak askıya alınması ve erişiminin engellenmesi,</li>
+            <li>Elde edilen veri ve IP bilgilerinin Ulusal ve Uluslararası Kolluk Kuvvetleri (örn. NCMEC ve yerel polis teşkilatı) ile eksiksiz olarak paylaşılması,</li>
+        </ul>
+        <p>adımları istisnasız olarak uygulanacaktır.</p>
+
+        <h2>4. İletişim ve Destek</h2>
+        <p>Güvenlikle ilgili her türlü endişe, ihbar veya sorunuz için aşağıdaki e-posta adresinden bizimle iletişime geçebilirsiniz:</p>
+        <p><strong>E-posta:</strong> mahmuttozsoy@icloud.com</p>
+
+        <div class="footer">
+            &copy; 2026 Askıda Uygulaması. Tüm Hakları Saklıdır.
+        </div>
+    </div>
+
+</body>
+</html>

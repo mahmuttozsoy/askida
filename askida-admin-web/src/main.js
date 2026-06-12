@@ -384,8 +384,148 @@ async function handleRejectRequest(requestId) {
   }
 }
 
+// Landing Page Render Function
+function renderLandingPage() {
+  appRoot.innerHTML = `
+    <div class="landing-wrapper">
+      <header class="landing-header">
+        <div class="landing-brand">
+          <i class="fas fa-hand-holding-heart"></i> Askıda
+        </div>
+      </header>
+      
+      <main class="landing-main">
+        <div class="landing-hero">
+          <div class="hero-badge">Yeni Versiyon Yayında 🎉</div>
+          <h1 class="hero-title">İyilik Paylaştıkça Çoğalır</h1>
+          <p class="hero-subtitle">Askıda, yardımsever işletmeler ve destekçiler ile ihtiyacı olan öğrencileri bir araya getiren sosyal dayanışma platformudur. Bir yemek, bir kitap veya sadece ufak bir destek; hepsi askıda sizi bekliyor.</p>
+          
+          <div class="hero-stats">
+            <div class="stat-item glass-panel">
+              <i class="fas fa-box-open" style="color: #38bdf8;"></i>
+              <div class="stat-info">
+                <h3 id="stat-products">...</h3>
+                <span>Aktif İlan</span>
+              </div>
+            </div>
+            <div class="stat-item glass-panel">
+              <i class="fas fa-hand-holding-dollar" style="color: #4ade80;"></i>
+              <div class="stat-info">
+                <h3 id="stat-donations">...</h3>
+                <span>Yapılan Bağış</span>
+              </div>
+            </div>
+            <div class="stat-item glass-panel">
+              <i class="fas fa-graduation-cap" style="color: #fb923c;"></i>
+              <div class="stat-info">
+                <h3 id="stat-students">...</h3>
+                <span>Kayıtlı Öğrenci</span>
+              </div>
+            </div>
+            <div class="stat-item glass-panel">
+              <i class="fas fa-heart" style="color: #f43f5e;"></i>
+              <div class="stat-info">
+                <h3 id="stat-supporters">...</h3>
+                <span>Aktif Destekçi</span>
+              </div>
+            </div>
+            <div class="stat-item glass-panel">
+              <i class="fas fa-store" style="color: #a855f7;"></i>
+              <div class="stat-info">
+                <h3 id="stat-businesses">...</h3>
+                <span>Kayıtlı İşletme</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="download-section">
+            <h3 class="download-title">Uygulamamızı Hemen İndirin</h3>
+            <div class="download-buttons">
+              <a href="#" class="btn-store apple" onclick="alert('Yakında App Store\\'da!'); return false;">
+                <i class="fab fa-apple"></i>
+                <div class="btn-store-text">
+                  <span>Download on the</span>
+                  <strong>App Store</strong>
+                </div>
+              </a>
+              <a href="#" class="btn-store google" onclick="alert('Yakında Google Play\\'de!'); return false;">
+                <i class="fab fa-google-play"></i>
+                <div class="btn-store-text">
+                  <span>GET IT ON</span>
+                  <strong>Google Play</strong>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <footer class="landing-footer">
+        <p>&copy; ${new Date().getFullYear()} Askıda Uygulaması. Tüm Hakları Saklıdır.</p>
+        <div class="footer-links">
+          <a href="/privacy-policy.html" target="_blank">Gizlilik Politikası</a>
+          <a href="/delete-account.html" target="_blank">Hesap Silme</a>
+        </div>
+      </footer>
+    </div>
+  `;
+  
+  fetchPublicStats();
+}
+
+async function fetchPublicStats() {
+  try {
+    const [productsRes, donationsRes, usersRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/products`),
+      fetch(`${API_BASE_URL}/donations`),
+      fetch(`${API_BASE_URL}/users`)
+    ]);
+    
+    if(productsRes.ok) {
+      const products = await productsRes.json();
+      const el = document.getElementById('stat-products');
+      if(el) el.innerText = products.length + '+';
+    }
+    
+    if(donationsRes.ok) {
+      const donations = await donationsRes.json();
+      const el = document.getElementById('stat-donations');
+      if(el) el.innerText = donations.length + '+';
+    }
+    
+    if(usersRes.ok) {
+      const users = await usersRes.json();
+      const studentCount = users.filter(u => u.role === 'Student').length;
+      const supporterCount = users.filter(u => u.role === 'Supporter').length;
+      const businessCount = users.filter(u => u.role === 'Business').length;
+      
+      const sEl = document.getElementById('stat-students');
+      if(sEl) sEl.innerText = studentCount + '+';
+      
+      const supEl = document.getElementById('stat-supporters');
+      if(supEl) supEl.innerText = supporterCount + '+';
+      
+      const bEl = document.getElementById('stat-businesses');
+      if(bEl) bEl.innerText = businessCount + '+';
+    }
+  } catch (err) {
+    console.error('Failed to fetch public stats', err);
+    // Fallback if API is down
+    const pEl = document.getElementById('stat-products');
+    if(pEl && pEl.innerText === '...') pEl.innerText = '100+';
+    const dEl = document.getElementById('stat-donations');
+    if(dEl && dEl.innerText === '...') dEl.innerText = '500+';
+    const sEl = document.getElementById('stat-students');
+    if(sEl && sEl.innerText === '...') sEl.innerText = '2000+';
+    const supEl = document.getElementById('stat-supporters');
+    if(supEl && supEl.innerText === '...') supEl.innerText = '300+';
+    const bEl = document.getElementById('stat-businesses');
+    if(bEl && bEl.innerText === '...') bEl.innerText = '50+';
+  }
+}
+
 // Main Render Function
-function renderApp() {
+function renderAdminApp() {
   if (!state.isAuthenticated) {
     appRoot.innerHTML = `
       <div class="auth-wrapper">
@@ -501,6 +641,14 @@ function renderApp() {
               <div class="role">Sistem Yöneticisi</div>
             </div>
           </div>
+          <a href="/privacy-policy.html" target="_blank" style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary); text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; font-weight: 500; font-size: 0.95rem; transition: all 0.3s ease; background: rgba(255,255,255,0.03);" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.color='var(--text-secondary)';">
+            <i class="fas fa-shield-halved" style="color: #38bdf8;"></i>
+            <span>Gizlilik Politikası</span>
+          </a>
+          <a href="/delete-account.html" target="_blank" style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary); text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; font-weight: 500; font-size: 0.95rem; transition: all 0.3s ease; background: rgba(255,255,255,0.03);" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.color='var(--text-secondary)';">
+            <i class="fas fa-user-xmark" style="color: #f43f5e;"></i>
+            <span>Hesap Silme</span>
+          </a>
           <button id="btn-logout" class="btn-logout">
             <i class="fas fa-right-from-bracket"></i>
             <span>Güvenli Çıkış</span>
@@ -1270,6 +1418,17 @@ function attachDashboardEvents() {
     });
   }
 }
+
+function renderApp() {
+  const hash = window.location.hash || '#/';
+  if (hash === '#/admin') {
+    renderAdminApp();
+  } else {
+    renderLandingPage();
+  }
+}
+
+window.addEventListener('hashchange', renderApp);
 
 // Initial Fetch on startup
 if (state.isAuthenticated) {

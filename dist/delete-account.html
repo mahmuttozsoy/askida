@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hesap Silme Talebi | Askıda</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #0b1120;
+            --bg-gradient: linear-gradient(135deg, #0b1120 0%, #1e293b 100%);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-gradient: linear-gradient(135deg, #f43f5e, #fb923c); /* Red-Orange for deletion theme */
+            --card-bg: rgba(30, 41, 59, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --item-bg: rgba(15, 23, 42, 0.5);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background glow effects */
+        .glow-1, .glow-2 {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+        .glow-1 {
+            width: 400px;
+            height: 400px;
+            background: #f43f5e;
+            top: -100px;
+            left: -100px;
+            animation: float1 10s ease-in-out infinite alternate;
+        }
+        .glow-2 {
+            width: 500px;
+            height: 500px;
+            background: #fb923c;
+            bottom: -150px;
+            right: -150px;
+            animation: float2 12s ease-in-out infinite alternate;
+        }
+
+        @keyframes float1 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        @keyframes float2 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-50px, -50px); }
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--card-border);
+            border-radius: 32px;
+            padding: 60px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header-icon {
+            font-size: 3.5rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.03);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2 i {
+            font-size: 1.4rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .data-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .data-list li {
+            background: var(--item-bg);
+            border: 1px solid var(--card-border);
+            padding: 16px 20px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .data-list li:hover {
+            transform: translateY(-2px);
+            border-color: rgba(244, 63, 94, 0.4);
+        }
+
+        .data-list li i {
+            color: #fb923c;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .info-box {
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            border-left: 4px solid #f43f5e;
+            padding: 16px 20px;
+            border-radius: 8px;
+            color: #fca5a5;
+            font-size: 0.95rem;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-top: 20px;
+        }
+        
+        .info-box i {
+            margin-top: 4px;
+            font-size: 1.2rem;
+        }
+
+        .contact-box {
+            background: rgba(251, 146, 60, 0.1);
+            border: 1px solid rgba(251, 146, 60, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .contact-box i.main-icon {
+            font-size: 2.5rem;
+            color: #fb923c;
+            margin-bottom: 16px;
+        }
+
+        .contact-box h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .contact-box p {
+            margin-bottom: 20px;
+        }
+
+        .contact-box a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent-gradient);
+            color: #ffffff;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 100px;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        .contact-box a:hover {
+            box-shadow: 0 10px 20px -10px rgba(244, 63, 94, 0.6);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 24px;
+                border-radius: 24px;
+            }
+            h1 { font-size: 2.2rem; }
+            h2 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-1"></div>
+    <div class="glow-2"></div>
+
+    <div class="container">
+        <div class="header">
+            <i class="fa-solid fa-user-xmark header-icon"></i>
+            <h1>Hesap Silme Talebi</h1>
+            <p class="subtitle">Askıda uygulamasındaki hesabınızı ve ilişkili kişisel verilerinizi silmek için aşağıdaki adımları izleyebilirsiniz.</p>
+        </div>
+
+        <div class="section">
+            <h2><i class="fa-solid fa-trash-can"></i> Silinen Veriler</h2>
+            <p>Hesap silme talebiniz onaylandığında aşağıdaki kişisel verileriniz sistemlerimizden kalıcı olarak silinir:</p>
+            <ul class="data-list">
+                <li><i class="fa-solid fa-user"></i> Ad Soyad</li>
+                <li><i class="fa-solid fa-envelope"></i> E-posta</li>
+                <li><i class="fa-solid fa-phone"></i> Telefon Numarası</li>
+                <li><i class="fa-solid fa-id-badge"></i> Profil Bilgileri</li>
+            </ul>
+            
+            <div class="info-box">
+                <i class="fa-solid fa-circle-info"></i>
+                <div>
+                    <strong>Önemli Not:</strong> Yasal zorunluluklar ve mali denetim gereksinimleri nedeniyle bazı log kayıtları ve geçmiş işlem bilgileri en fazla 90 gün boyunca sistemlerimizde saklanabilir.
+                </div>
+            </div>
+        </div>
+
+        <div class="contact-box">
+            <i class="fa-solid fa-paper-plane main-icon"></i>
+            <h3>Talebinizi İletin</h3>
+            <p>Hesabınızı silmek için kayıtlı e-posta adresiniz üzerinden bize bir e-posta gönderebilirsiniz. Talebiniz en kısa sürede işleme alınacaktır.</p>
+            <a href="mailto:mahmuttozsoy@icloud.com?subject=Askıda Hesap Silme Talebi&body=Merhaba, Askıda uygulamasındaki hesabımın ve kişisel verilerimin silinmesini talep ediyorum."><i class="fa-solid fa-envelope"></i> mahmuttozsoy@icloud.com</a>
+        </div>
+    </div>
+</body>
+</html>
