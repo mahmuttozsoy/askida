@@ -28,6 +28,10 @@ class _PackagesScreenState extends ConsumerState<PackagesScreen> {
   @override
   void initState() {
     super.initState();
+    // Start loading the specific product for this ad
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(iapServiceProvider.notifier).loadProduct(widget.ad.googlePlayProductId);
+    });
   }
 
   void _onPaymentSuccess() async {
@@ -178,16 +182,14 @@ class _PackagesScreenState extends ConsumerState<PackagesScreen> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Row(
+                    const Row(
                       children: [
-                        const Icon(Icons.info_outline, color: Colors.blue, size: 16),
-                        const SizedBox(width: 8),
+                        Icon(Icons.info_outline, color: Colors.blue, size: 16),
+                        SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            widget.ad.subscriptionType == 'OneTime' 
-                                ? 'Bu tek seferlik bir satın almadır.'
-                                : 'Bu abonelik düzenli olarak yenilenir.',
-                            style: const TextStyle(color: Colors.blue),
+                            'Bu tek seferlik bir satın almadır.',
+                            style: TextStyle(color: Colors.blue),
                           ),
                         ),
                       ],

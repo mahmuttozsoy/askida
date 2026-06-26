@@ -33,13 +33,6 @@ class IAPService extends Notifier<IAPState> {
   final InAppPurchase _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
 
-  final Set<String> _kIds = <String>{
-    'one_meal_consumable',
-    'meal_sub_weekly',
-    'meal_sub_monthly',
-    'meal_sub_yearly',
-  };
-
   @override
   IAPState build() {
     _initStoreInfo();
@@ -70,25 +63,29 @@ class IAPService extends Notifier<IAPState> {
       state = state.copyWith(isAvailable: false);
       return;
     }
+    state = state.copyWith(isAvailable: true);
+  }
 
-    List<ProductDetails> loadedProducts = [];
+  Future<void> loadProduct(String productId) async {
+    if (!state.isAvailable || productId.isEmpty) return;
+
     if (Platform.isIOS || Platform.isAndroid) {
-      ProductDetailsResponse productDetailResponse = await _iap.queryProductDetails(_kIds);
-      if (productDetailResponse.error == null) {
-        loadedProducts = productDetailResponse.productDetails;
+      ProductDetailsResponse response = await _iap.queryProductDetails({productId});
+      if (response.error == null && response.productDetails.isNotEmpty) {
+        final currentProducts = List<ProductDetails>.from(state.products);
+        // Add if not exists
+        if (!currentProducts.any((p) => p.id == productId)) {
+          currentProducts.addAll(response.productDetails);
+          state = state.copyWith(products: currentProducts);
+        }
       }
     }
-    
-    state = state.copyWith(isAvailable: true, products: loadedProducts);
   }
 
   Future<void> buyProduct(ProductDetails product) async {
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
-    if (product.id.contains('sub')) {
-      await _iap.buyNonConsumable(purchaseParam: purchaseParam);
-    } else {
-      await _iap.buyConsumable(purchaseParam: purchaseParam, autoConsume: true);
-    }
+    // Her zaman tek seferlik (consumable) olarak satin alinacak
+    await _iap.buyConsumable(purchaseParam: purchaseParam, autoConsume: true);
   }
 
   Future<void> _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
@@ -123,7 +120,7 @@ class IAPService extends Notifier<IAPState> {
       final response = await dio.post('https://api.askidagmtid.com/api/Payment/verify-purchase', data: {
         'PurchaseToken': purchaseDetails.verificationData.serverVerificationData,
         'ProductId': purchaseDetails.productID,
-        'SubscriptionType': purchaseDetails.productID.contains('sub') ? 'Subscription' : 'OneTime',
+        'SubscriptionType': 'OneTime',
         'Price': 0,
         'Quantity': 1
       });
