@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/feed_provider.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/models/ad_model.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -17,7 +16,6 @@ class FeedScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final adsStream = ref.watch(adsStreamProvider);
-    final user = ref.watch(authProvider).userProfile;
 
     return Scaffold(
       appBar: AppBar(
@@ -152,6 +150,14 @@ class _AdCard extends StatelessWidget {
                         width: 40,
                         height: 40,
                         fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: 40,
+                            height: 40,
+                            color: Colors.grey.shade200,
+                            child: const Icon(Icons.broken_image, color: Colors.grey, size: 20),
+                          );
+                        },
                       ),
                     )
                   else
@@ -174,11 +180,13 @@ class _AdCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          ad.title,
+                          ad.title.isEmpty ? 'İsimsiz İlan' : ad.title,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Row(
                           children: [

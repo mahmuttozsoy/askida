@@ -10,7 +10,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
 # In Android, build-name is used as versionName while build-number used as versionCode.
-version: 1.0.8+11
+version: 1.0.10+13
 
 environment:
   sdk: ^3.8.0
@@ -42,8 +42,7 @@ dependencies:
   flutter_local_notifications: ^20.1.0
   image_picker: ^1.1.2
   http: ^1.6.0
-  iyzico: ^0.1.1+3
-  flutter_credit_card: ^4.1.0
+  in_app_purchase: ^3.2.3
 
 dev_dependencies:
   flutter_test:

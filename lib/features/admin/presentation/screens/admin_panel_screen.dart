@@ -221,6 +221,12 @@ class _VerificationCard extends ConsumerWidget {
                       child: CircularProgressIndicator(),
                     );
                   },
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Padding(
+                      padding: EdgeInsets.all(40.0),
+                      child: Text('Belge yüklenirken bir hata oluştu veya belge bulunamadı.'),
+                    );
+                  },
                 ),
               )
             else

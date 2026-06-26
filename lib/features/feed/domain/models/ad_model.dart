@@ -17,6 +17,8 @@ class FoodAd {
   final String? parentId;
   final DateTime createdAt;
   final String? imageUrl;
+  final String? googlePlayProductId;
+  final String? subscriptionType;
 
   FoodAd({
     required this.id,
@@ -33,6 +35,8 @@ class FoodAd {
     this.parentId,
     required this.createdAt,
     this.imageUrl,
+    this.googlePlayProductId,
+    this.subscriptionType,
   });
 
   Map<String, dynamic> toMap() {
@@ -50,6 +54,8 @@ class FoodAd {
       'parentId': parentId,
       'createdAt': FieldValue.serverTimestamp(),
       'imageUrl': imageUrl,
+      'googlePlayProductId': googlePlayProductId,
+      'subscriptionType': subscriptionType,
     };
   }
 
@@ -70,6 +76,8 @@ class FoodAd {
       parentId: data['parentId'],
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       imageUrl: data['imageUrl'],
+      googlePlayProductId: data['googlePlayProductId'],
+      subscriptionType: data['subscriptionType'],
     );
   }
 
@@ -102,6 +110,8 @@ class FoodAd {
       parentId: json['parentId'],
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
       imageUrl: json['imageUrl'] ?? json['ImageUrl'],
+      googlePlayProductId: json['googlePlayProductId'] ?? json['GooglePlayProductId'],
+      subscriptionType: json['subscriptionType'] ?? json['SubscriptionType'],
     );
   }
 }

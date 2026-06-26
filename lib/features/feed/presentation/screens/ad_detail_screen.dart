@@ -5,7 +5,7 @@ import '../../domain/models/ad_model.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/domain/models/user_model.dart';
-import 'payment_screen.dart';
+import 'packages_screen.dart';
 
 class AdDetailScreen extends ConsumerStatefulWidget {
   final FoodAd ad;
@@ -42,6 +42,14 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 200,
+                    width: double.infinity,
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.broken_image, color: Colors.grey, size: 48),
+                  );
+                },
               )
             else
               Container(
@@ -384,9 +392,10 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                     onPressed: _isLoading
                         ? null
                         : () {
-                            Navigator.of(context).push(
+                            Navigator.push(
+                              context,
                               MaterialPageRoute(
-                                builder: (context) => PaymentScreen(
+                                builder: (context) => PackagesScreen(
                                   ad: widget.ad,
                                   quantity: _donationQuantity,
                                   totalPrice:

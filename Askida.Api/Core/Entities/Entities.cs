@@ -40,6 +40,8 @@ namespace Askida.Api.Core.Entities
         public int RemainingQuantity { get; set; } = 1;
         public string ParentId { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
+        public string GooglePlayProductId { get; set; } = string.Empty;
+        public string SubscriptionType { get; set; } = "None"; // None, OneTime, Weekly, Monthly, Yearly
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 

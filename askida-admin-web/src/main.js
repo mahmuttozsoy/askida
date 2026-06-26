@@ -295,6 +295,9 @@ async function handleAddProduct(e) {
     formData.append('CategoryId', document.getElementById('prod-category').value);
     formData.append('Price', document.getElementById('prod-price').value);
     formData.append('Location', document.getElementById('prod-location').value);
+    formData.append('GooglePlayProductId', document.getElementById('prod-play-id').value);
+    formData.append('SubscriptionType', document.getElementById('prod-sub-type').value);
+    
     // NOT: Kullanıcının isteği doğrultusunda "MİKTAR / KİŞİ SAYISI" alanı arayüzden 
     // kaldırıldığı için, API'ye gönderilen miktar varsayılan olarak her zaman 1'e sabitlendi.
     formData.append('Quantity', 1);
@@ -312,7 +315,13 @@ async function handleAddProduct(e) {
     });
 
     if (!response.ok) {
-      throw new Error('Ürün eklenirken bir hata oluştu.');
+      let errText = 'Ürün eklenirken bir hata oluştu.';
+      try {
+        const serverErr = await response.text();
+        if (serverErr) errText += ` (${response.status}: ${serverErr.substring(0, 50)})`;
+        else errText += ` (HTTP ${response.status})`;
+      } catch(e) {}
+      throw new Error(errText);
     }
 
     showToast('Ürün başarıyla eklendi!', 'success');
@@ -739,10 +748,32 @@ function renderAdminApp() {
                 </div>
 
                 <div class="form-group">
-                  <label for="prod-price">PİYASA DEĞERİ (₺)</label>
+                  <label for="prod-price">PİYASA DEĞERİ / GÖRÜNEN FİYAT (₺)</label>
                   <div class="input-wrapper">
                     <i class="fas fa-lira-sign"></i>
                     <input type="number" id="prod-price" class="input-control" placeholder="0.00" step="0.01" min="0" required>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group half">
+                    <label for="prod-play-id">GOOGLE PLAY ÜRÜN ID (Zorunlu)</label>
+                    <div class="input-wrapper">
+                      <i class="fab fa-google-play"></i>
+                      <input type="text" id="prod-play-id" class="input-control" placeholder="Örn: meal_sub_weekly" required>
+                    </div>
+                  </div>
+                  <div class="form-group half">
+                    <label for="prod-sub-type">ABONELİK TÜRÜ</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-sync"></i>
+                      <select id="prod-sub-type" class="input-control" required>
+                        <option value="OneTime">Tek Seferlik Ödeme</option>
+                        <option value="Weekly">Haftalık Abonelik</option>
+                        <option value="Monthly">Aylık Abonelik</option>
+                        <option value="Yearly">Yıllık Abonelik</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 

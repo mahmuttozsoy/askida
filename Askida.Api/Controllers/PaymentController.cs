@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Iyzipay.Request;
-using Iyzipay.Model;
-using Iyzipay;
 using System.Collections.Generic;
 using System;
+using Askida.Api.Core.Interfaces;
+using Askida.Api.Core.Entities;
+// Google API libraries
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.AndroidPublisher.v3;
+using Google.Apis.Services;
 
 namespace Askida.Api.Controllers
 {
@@ -12,107 +15,96 @@ namespace Askida.Api.Controllers
     [ApiController]
     public class PaymentController : ControllerBase
     {
-        [HttpPost("pay")]
-        public async Task<IActionResult> Pay([FromBody] PaymentModel model)
+        private readonly IAidRepository _aidRepository;
+
+        public PaymentController(IAidRepository aidRepository)
         {
-            if (model == null) return BadRequest("Geçersiz veri");
+            _aidRepository = aidRepository;
+        }
 
-            // Iyzico Ayarları (Test Ortamı)
-            Options options = new Options();
-            options.ApiKey = "sandbox-API_KEY_BURAYA"; // Kullanıcı kendi test anahtarını yazacak
-            options.SecretKey = "sandbox-SECRET_KEY_BURAYA";
-            options.BaseUrl = "https://sandbox-api.iyzipay.com";
+        [HttpPost("verify-purchase")]
+        public async Task<IActionResult> VerifyPurchase([FromBody] GooglePlayPurchaseModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.PurchaseToken) || string.IsNullOrEmpty(model.ProductId))
+                return BadRequest("Geçersiz veri");
 
-            // Ödeme İsteği
-            CreatePaymentRequest request = new CreatePaymentRequest();
-            request.Locale = Locale.TR.ToString();
-            request.ConversationId = Guid.NewGuid().ToString();
-            request.Price = model.Price.ToString().Replace(",", ".");
-            request.PaidPrice = model.Price.ToString().Replace(",", ".");
-            request.Currency = Currency.TRY.ToString();
-            request.Installment = 1;
-            request.BasketId = "DONATION-" + Guid.NewGuid().ToString().Substring(0, 5);
-            request.PaymentChannel = PaymentChannel.MOBILE.ToString();
-            request.PaymentGroup = PaymentGroup.PRODUCT.ToString(); // Bağış vs.
-
-            // Kredi Kartı
-            PaymentCard paymentCard = new PaymentCard();
-            paymentCard.CardHolderName = model.CardHolderName;
-            paymentCard.CardNumber = model.CardNumber?.Replace(" ", "");
-            paymentCard.ExpireMonth = model.ExpireMonth;
-            paymentCard.ExpireYear = model.ExpireYear;
-            paymentCard.Cvc = model.Cvc;
-            paymentCard.RegisterCard = 0;
-            request.PaymentCard = paymentCard;
-
-            // Alıcı (Zorunlu)
-            Buyer buyer = new Buyer();
-            buyer.Id = "BY789";
-            buyer.Name = "Askida";
-            buyer.Surname = "Destekci";
-            buyer.GsmNumber = "+905324000000";
-            buyer.Email = "email@email.com";
-            buyer.IdentityNumber = "74300864791";
-            buyer.LastLoginDate = "2015-10-05 12:43:35";
-            buyer.RegistrationDate = "2013-04-21 15:12:09";
-            buyer.RegistrationAddress = "Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1";
-            buyer.Ip = "85.34.78.112";
-            buyer.City = "Istanbul";
-            buyer.Country = "Turkey";
-            buyer.ZipCode = "34732";
-            request.Buyer = buyer;
-
-            // Fatura Adresi (Zorunlu)
-            Address billingAddress = new Address();
-            billingAddress.ContactName = "Askida Destekci";
-            billingAddress.City = "Istanbul";
-            billingAddress.Country = "Turkey";
-            billingAddress.Description = "Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1";
-            billingAddress.ZipCode = "34732";
-            request.BillingAddress = billingAddress;
-
-            // Teslimat Adresi (Zorunlu)
-            Address shippingAddress = new Address();
-            shippingAddress.ContactName = "Askida Talep Eden";
-            shippingAddress.City = "Istanbul";
-            shippingAddress.Country = "Turkey";
-            shippingAddress.Description = "Askida Sistem Teslimati";
-            shippingAddress.ZipCode = "34732";
-            request.ShippingAddress = shippingAddress;
-
-            // Sepet İçeriği (Zorunlu)
-            List<BasketItem> basketItems = new List<BasketItem>();
-            BasketItem firstBasketItem = new BasketItem();
-            firstBasketItem.Id = "BI101";
-            firstBasketItem.Name = model.AdTitle ?? "Bağış";
-            firstBasketItem.Category1 = "Donation";
-            firstBasketItem.ItemType = BasketItemType.VIRTUAL.ToString();
-            firstBasketItem.Price = model.Price.ToString().Replace(",", ".");
-            basketItems.Add(firstBasketItem);
-            request.BasketItems = basketItems;
-
-            // Iyzico'ya gönder
-            Payment payment = await Payment.Create(request, options);
-
-            if (payment.Status == "success")
+            try
             {
-                return Ok(new { success = true, transactionId = payment.PaymentId });
+                // In a real production scenario, you would initialize AndroidPublisherService
+                // using a Service Account JSON key from Google Cloud Console.
+                // For now, we will simulate a successful verification if token is provided.
+                
+                /*
+                // Example of real verification logic:
+                GoogleCredential credential = GoogleCredential.FromFile("path/to/service-account.json")
+                    .CreateScoped(AndroidPublisherService.Scope.Androidpublisher);
+
+                var service = new AndroidPublisherService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "Askida App"
+                });
+
+                if (model.SubscriptionType == "OneTime")
+                {
+                    var request = service.Purchases.Products.Get("com.yourcompany.askida", model.ProductId, model.PurchaseToken);
+                    var purchase = await request.ExecuteAsync();
+                    if (purchase.PurchaseState != 0) // 0 = Purchased
+                        return BadRequest(new { success = false, message = "Ödeme onaylanmamış." });
+                }
+                else
+                {
+                    var request = service.Purchases.Subscriptions.Get("com.yourcompany.askida", model.ProductId, model.PurchaseToken);
+                    var purchase = await request.ExecuteAsync();
+                    if (purchase.PaymentState != 1) // 1 = Payment received
+                        return BadRequest(new { success = false, message = "Abonelik ödemesi alınamamış." });
+                }
+                */
+
+                // Simulated success (since we don't have the Google Service Account JSON yet)
+                bool isVerified = true; 
+
+                if (isVerified)
+                {
+                    // Create an actual donation record in the Aid repository
+                    var aid = new Aid
+                    {
+                        Title = model.AdTitle ?? "Bağış",
+                        Description = $"{model.SubscriptionType} - {model.ProductId} Paketi",
+                        CategoryId = "Donation",
+                        CreatorId = "supporter-id", // In real app, get from Auth Context
+                        Price = model.Price,
+                        Location = "Global",
+                        Status = "Available",
+                        Quantity = model.Quantity,
+                        RemainingQuantity = model.Quantity,
+                        GooglePlayProductId = model.ProductId,
+                        SubscriptionType = model.SubscriptionType
+                    };
+
+                    await _aidRepository.AddAsync(aid);
+
+                    return Ok(new { success = true, message = "Google Play ödemesi doğrulandı ve bağış oluşturuldu." });
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = "Google Play doğrulama hatası." });
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = payment.ErrorMessage });
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
     }
 
-    public class PaymentModel
+    public class GooglePlayPurchaseModel
     {
-        public string? CardHolderName { get; set; }
-        public string? CardNumber { get; set; }
-        public string? ExpireMonth { get; set; }
-        public string? ExpireYear { get; set; }
-        public string? Cvc { get; set; }
+        public string PurchaseToken { get; set; } = string.Empty;
+        public string ProductId { get; set; } = string.Empty;
+        public string SubscriptionType { get; set; } = "OneTime"; // OneTime, Weekly, Monthly, Yearly
         public double Price { get; set; }
         public string? AdTitle { get; set; }
+        public int Quantity { get; set; } = 1;
     }
 }

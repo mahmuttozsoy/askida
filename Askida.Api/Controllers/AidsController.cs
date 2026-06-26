@@ -71,7 +71,9 @@ namespace Askida.Api.Controllers
                 Location = dto.Location,
                 Status = "Available", // İlanın durumunu başlangıçta 'Müsait' yapar.
                 Quantity = dto.Quantity > 0 ? dto.Quantity : 1, // Toplam miktar
-                RemainingQuantity = dto.Quantity > 0 ? dto.Quantity : 1 // Kalan/Kullanılabilir miktar
+                RemainingQuantity = dto.Quantity > 0 ? dto.Quantity : 1, // Kalan/Kullanılabilir miktar
+                GooglePlayProductId = dto.GooglePlayProductId,
+                SubscriptionType = dto.SubscriptionType
             };
             
             var createdAid = await _aidRepository.AddAsync(aid);

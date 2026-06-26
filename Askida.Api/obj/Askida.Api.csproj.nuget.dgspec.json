@@ -54,9 +54,9 @@
               "target": "Package",
               "version": "[4.0.3, )"
             },
-            "Iyzipay": {
+            "Google.Apis.AndroidPublisher.v3": {
               "target": "Package",
-              "version": "[2.1.78, )"
+              "version": "[1.74.0.4165, )"
             },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
