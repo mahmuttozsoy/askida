@@ -92,12 +92,12 @@ namespace Askida.Api.Controllers
             
             string finalClaimerId = string.IsNullOrEmpty(claimerId) ? "mock-student-id" : claimerId;
 
-            // NOT: Kullanıcının "bir öğrenci onay/ret gelene kadar ikinci bir talep yapamasın" isteği üzerine
-            // öğrencinin hali hazırda onay/red bekleyen ("Claimed") aktif bir talebi var mı kontrol ediliyor.
+            // NOT: Kullanıcının aynı üründen birden fazla talep yapmasını engellemek için
+            // öğrencinin hali hazırda onay/red bekleyen ("Claimed") ve aynı 'ParentId'ye sahip aktif bir talebi var mı kontrol ediliyor.
             var existingAids = await _aidRepository.GetByClaimerIdAsync(finalClaimerId);
-            if (existingAids.Any(a => a.Status == "Claimed"))
+            if (existingAids.Any(a => a.Status == "Claimed" && a.ParentId == aid.Id))
             {
-                return BadRequest(new { success = false, message = "Zaten bekleyen bir talebiniz var. Lütfen sonuçlanmasını bekleyin." });
+                return BadRequest(new { success = false, message = "Bu ürün için daha önce bir talepte bulundunuz. Mevcut talebiniz sonuçlandıktan sonra tekrar talep oluşturabilirsiniz." });
             }
             // Sadece o öğrenciye özel 'alt/kopya' bir ilan (Talep) oluşturulur.
             // Ana ilanın stoğu veya statüsü değişmez.
