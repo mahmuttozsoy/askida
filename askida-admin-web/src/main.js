@@ -5,10 +5,29 @@ import './style.css';
 // buradaki adres kalıcı olarak canlı sunucu (api.askidagmtid.com) şeklinde sabitlendi.
 const API_BASE_URL = 'https://api.askidagmtid.com/api';
 
+// Session expiry: 2 hours (in milliseconds)
+const SESSION_DURATION_MS = 2 * 60 * 60 * 1000;
+
+// Check if the stored session has expired
+function isSessionValid() {
+  const session = localStorage.getItem('admin_session');
+  const loginTime = localStorage.getItem('admin_login_time');
+  if (!session || !loginTime) return false;
+  const elapsed = Date.now() - parseInt(loginTime, 10);
+  if (elapsed > SESSION_DURATION_MS) {
+    // Session expired — clear it
+    localStorage.removeItem('admin_session');
+    localStorage.removeItem('admin_user');
+    localStorage.removeItem('admin_login_time');
+    return false;
+  }
+  return true;
+}
+
 // App State
 let state = {
-  isAuthenticated: !!localStorage.getItem('admin_session'),
-  adminUser: JSON.parse(localStorage.getItem('admin_user') || 'null'),
+  isAuthenticated: isSessionValid(),
+  adminUser: isSessionValid() ? JSON.parse(localStorage.getItem('admin_user') || 'null') : null,
   activeTab: 'pending', // 'pending' or 'all'
   usersList: [],
   productsList: [],
@@ -87,7 +106,8 @@ async function fetchProducts() {
   try {
     const response = await fetch(`${API_BASE_URL}/products`);
     if (!response.ok) throw new Error('Ürünler alınamadı.');
-    state.productsList = await response.json();
+    const allProducts = await response.json();
+    state.productsList = allProducts.filter(p => !p.parentId || p.parentId === "" || p.parentId === "00000000-0000-0000-0000-000000000000");
   } catch (e) {
     showToast(e.message, 'error');
   }
@@ -148,8 +168,9 @@ async function handleLogin(email, password) {
       throw new Error('Yetkisiz erişim. Sadece Yöneticiler giriş yapabilir.');
     }
     
-    // Save Auth State
+    // Save Auth State with login timestamp
     localStorage.setItem('admin_session', 'true');
+    localStorage.setItem('admin_login_time', Date.now().toString());
     localStorage.setItem('admin_user', JSON.stringify(userData));
     state.isAuthenticated = true;
     state.adminUser = userData;
@@ -172,6 +193,7 @@ async function handleLogin(email, password) {
 function handleLogout() {
   localStorage.removeItem('admin_session');
   localStorage.removeItem('admin_user');
+  localStorage.removeItem('admin_login_time');
   state.isAuthenticated = false;
   state.adminUser = null;
   state.usersList = [];
@@ -549,14 +571,14 @@ function renderAdminApp() {
               <label for="email">E-POSTA</label>
               <div class="input-wrapper">
                 <i class="fas fa-envelope"></i>
-                <input type="email" id="email" class="input-control" placeholder="admin@askida.org" required value="admin@askida.org">
+                <input type="email" id="email" class="input-control" placeholder="E-posta adresinizi girin" required>
               </div>
             </div>
             <div class="form-group">
               <label for="password">ŞİFRE</label>
               <div class="input-wrapper">
                 <i class="fas fa-lock"></i>
-                <input type="password" id="password" class="input-control" placeholder="••••••••" required value="admin">
+                <input type="password" id="password" class="input-control" placeholder="••••••••" required>
               </div>
             </div>
             <button type="submit" id="btn-login-submit" class="btn-glowing">
@@ -1451,15 +1473,15 @@ function attachDashboardEvents() {
 }
 
 function renderApp() {
-  const hash = window.location.hash || '#/';
-  if (hash === '#/admin') {
+  const path = window.location.pathname;
+  if (path === '/admin' || path === '/admin/') {
     renderAdminApp();
   } else {
     renderLandingPage();
   }
 }
 
-window.addEventListener('hashchange', renderApp);
+window.addEventListener('popstate', renderApp);
 
 // Initial Fetch on startup
 if (state.isAuthenticated) {

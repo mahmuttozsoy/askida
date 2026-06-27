@@ -66,7 +66,9 @@ public class ProductsController : ControllerBase
             Status = "Available",
             Quantity = dto.Quantity > 0 ? dto.Quantity : 1,
             RemainingQuantity = dto.Quantity > 0 ? dto.Quantity : 1,
-            ImageUrl = imageUrl
+            ImageUrl = imageUrl,
+            GooglePlayProductId = dto.GooglePlayProductId,
+            SubscriptionType = string.IsNullOrEmpty(dto.SubscriptionType) ? "OneTime" : dto.SubscriptionType
         };
         
         var createdAid = await _aidRepository.AddAsync(aid);

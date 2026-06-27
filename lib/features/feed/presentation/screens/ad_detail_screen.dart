@@ -19,6 +19,7 @@ class AdDetailScreen extends ConsumerStatefulWidget {
 
 class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
   bool _isLoading = false;
+  bool _isCooldown = false;
   int _donationQuantity = 1;
 
   @override
@@ -221,12 +222,24 @@ class _AdDetailScreenState extends ConsumerState<AdDetailScreen> {
                         ElevatedButton(
                           onPressed:
                               (_isLoading ||
+                                  _isCooldown ||
                                   !isVerified ||
                                   (widget.ad.quantity > 1 &&
                                       widget.ad.remainingQuantity <= 0))
                               ? null
                               : () async {
-                                  setState(() => _isLoading = true);
+                                  setState(() {
+                                    _isLoading = true;
+                                    _isCooldown = true; // Spam engelleme kilidi
+                                  });
+                                  
+                                  // 3 Saniyelik bekleme süresi
+                                  Future.delayed(const Duration(seconds: 3), () {
+                                    if (mounted) {
+                                      setState(() => _isCooldown = false);
+                                    }
+                                  });
+
                                   final messenger = ScaffoldMessenger.of(
                                     context,
                                   );

@@ -24,13 +24,16 @@ class PackagesScreen extends ConsumerStatefulWidget {
 
 class _PackagesScreenState extends ConsumerState<PackagesScreen> {
   bool _isProcessing = false;
+  bool _isCooldown = false;
 
   @override
   void initState() {
     super.initState();
     // Start loading the specific product for this ad
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(iapServiceProvider.notifier).loadProduct(widget.ad.googlePlayProductId);
+      if (widget.ad.googlePlayProductId != null) {
+        ref.read(iapServiceProvider.notifier).loadProduct(widget.ad.googlePlayProductId!);
+      }
     });
   }
 
@@ -73,6 +76,11 @@ class _PackagesScreenState extends ConsumerState<PackagesScreen> {
   }
 
   void _buyWithGooglePlay() async {
+    setState(() => _isCooldown = true);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _isCooldown = false);
+    });
+
     final iapState = ref.read(iapServiceProvider);
     
     if (!iapState.isAvailable) {
@@ -224,7 +232,7 @@ class _PackagesScreenState extends ConsumerState<PackagesScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: (_isProcessing || !iapState.isAvailable) ? null : _buyWithGooglePlay,
+                  onPressed: (_isProcessing || _isCooldown || !iapState.isAvailable) ? null : _buyWithGooglePlay,
                 ),
               ),
               const SizedBox(height: 20),
