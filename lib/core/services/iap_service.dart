@@ -70,14 +70,27 @@ class IAPService extends Notifier<IAPState> {
     if (!state.isAvailable || productId.isEmpty) return;
 
     if (Platform.isIOS || Platform.isAndroid) {
+      debugPrint("IAP: Querying product details for ID: $productId");
       ProductDetailsResponse response = await _iap.queryProductDetails({productId});
-      if (response.error == null && response.productDetails.isNotEmpty) {
+      
+      if (response.error != null) {
+        debugPrint("IAP Error: Google Play returned error code: ${response.error!.code}, message: ${response.error!.message}");
+      }
+      
+      if (response.notFoundIDs.isNotEmpty) {
+        debugPrint("IAP Warning: Product IDs not found by Google Play: ${response.notFoundIDs}");
+      }
+
+      if (response.productDetails.isNotEmpty) {
+        debugPrint("IAP Success: Found ${response.productDetails.length} product(s) for ID: $productId");
         final currentProducts = List<ProductDetails>.from(state.products);
         // Add if not exists
         if (!currentProducts.any((p) => p.id == productId)) {
           currentProducts.addAll(response.productDetails);
           state = state.copyWith(products: currentProducts);
         }
+      } else {
+        debugPrint("IAP Warning: Google Play returned empty product details list for ID: $productId");
       }
     }
   }
