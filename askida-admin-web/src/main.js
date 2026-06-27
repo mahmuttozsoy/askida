@@ -163,7 +163,7 @@ async function handleLogin(email, password) {
       throw new Error(result.message || 'E-posta veya şifre hatalı.');
     }
     
-    const userData = result.data;
+    const userData = result.data?.user;
     if (!userData || userData.role !== 'Admin') {
       throw new Error('Yetkisiz erişim. Sadece Yöneticiler giriş yapabilir.');
     }
